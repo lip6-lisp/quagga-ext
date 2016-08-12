@@ -4242,6 +4242,111 @@ bgp_static_unset_safi(safi_t safi, struct vty *vty, const char *ip_str,
   return CMD_SUCCESS;
 }
 
+
+/* nguyenh */
+/* reference
+
+DEFUN (bgp_router_id,
+       bgp_router_id_cmd,
+       "bgp router-id A.B.C.D",
+       BGP_STR
+       "Override configured router identifier\n"
+       "Manually configured router identifier\n")
+{
+  int ret;
+  struct in_addr id;
+  struct bgp *bgp;
+
+  bgp = vty->index;
+
+  ret = inet_aton (argv[0], &id);
+  if (! ret)
+    {
+      vty_out (vty, "%% Malformed bgp router identifier%s", VTY_NEWLINE);
+      return CMD_WARNING;
+    }
+
+  bgp->router_id_static = id;
+  bgp_router_id_set (bgp, &id);
+
+  return CMD_SUCCESS;
+}
+
+*/
+
+/*
+void bgp_lisp_ms_update(struct bgp *bgp, struct in_addr *ms)
+{
+	// just only copy the configured ip address to bgp instance
+	// so no need to define a separate function
+
+	//IPV4_ADDR_COPY (&bgp->lisp_ms_ip, ms);
+	//bgp_config_set (bgp, BGP_LISP_MS_ID);
+
+	// TODO need to define lisp_ms as an attribute of bgp instance in bgpd.h
+	// lisp_ms is declared as a pointer to struct prefix or a variable like router_id ?
+	// if lisp_ms is a pointer so we need to declare a global variable here to hold the value of ms
+	// if it is a variable like router_id, copy the ms value parsed from configuration file to router id
+	// we follow the way router id is configured and handled
+	// using   IPV4_ADDR_COPY (&bgp->router_id, id); // check in bgp_router_id_set() function in bgpd.c
+	// in bgp_vty , when parsing bgp_router_id_cmd call to bgp_router_id_set (struct bgp *bgp, struct in_addr *id)
+	// copy the value (not the address) that pointer 'id' point to the memory @ address &bgp->router_id
+	// router_id is a variable of bgp structure, it is not a pointer
+
+	// how the macro IPV4_ADDR_COPY is defined ? check on lib/prefix.h
+	// #define IPV4_ADDR_COPY(D,S)  memcpy ((D), (S), IPV4_MAX_BYTELEN)
+	// relying on the memcpy function
+	// Copies the values from the location pointed to by source directly
+	// to the memory block pointed to by destination.
+
+	// considering to define and set the new flag for BGP -> LISP_MS_FLAG
+	// refer to bgp_router_id_set() function in bgpd.c
+
+
+	// so we will do the same as the bgp_router_id_cmd
+	// what is the difference between bgp_router_id and bgp_router_id_static
+	// why bgp_router_id_static can be set to id directly ? not using memory copy like bgp_router_id ?
+
+	// TODO UPDATE
+	// define in bgpd.h, add 'struct in_addr lisp_ms_ip' to struct bgp
+	// define new constant BGP_LISP_MS_ID
+	// add to bgp_config_set a new flag BGP_LISP_MS_ID
+	// where the SET_FLAG macro is defined ? bgp_attr.h
+	// next question, when it received from other peer where the value is stored ?
+
+}
+*/
+
+/* @nguyenh
+ * adding new configuration parameter specifying the
+ * contact IP address of lisp mapping server */
+DEFUN (bgp_lisp_ms,
+       bgp_lisp_ms_cmd,
+       "lisp mapping system A.B.C.D",
+       "Specify a contact ip address of lisp mapping system to announce via BGP\n"
+       "lisp mapping system <ip address>, e.g., 27.0.0.1\n")
+{
+	int ret;
+	struct in_addr ms;
+	struct bgp *bgp;
+
+	bgp = vty->index;
+
+	ret = inet_aton (argv[0], &ms);
+	if (! ret)
+	{
+		vty_out (vty, "%% Malformed LISP Mapping system IP address%s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	// update bgp with lisp MS address
+	IPV4_ADDR_COPY (&bgp->lisp_ms_ip,&ms);
+	// new attribute lisp_ms_ip for bgp structure defined in bgpd.h
+
+	return CMD_SUCCESS;
+}
+/* nguyenh */
+
 DEFUN (bgp_network,
        bgp_network_cmd,
        "network A.B.C.D/M",

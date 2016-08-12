@@ -96,6 +96,11 @@ struct bgp
   struct in_addr router_id;
   struct in_addr router_id_static;
 
+  /* @nguyenh */
+  /* BGP LISP MAPPING SYSTEM IP */
+  struct in_addr lisp_ms_ip;
+  /* @nguyenh */
+
   /* BGP route reflector cluster ID.  */
   struct in_addr cluster_id;
 
