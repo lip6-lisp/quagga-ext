@@ -993,7 +993,9 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 	  eval.val[1] = ECOMMUNITY_LISP_SUBTYPE_MSIP;
 	  eval.val[2] = 0;
 	  eval.val[3] = 0;
-	  memcpy(&eval.val[4],&bgp->lisp_ms_ip,sizeof(struct in_addr));
+	  memcpy(& (eval.val[4]),&bgp->lisp_ms_ip,sizeof(struct in_addr));
+
+	  zlog_debug ("eval created");
 
 	  // link current extended attribute to the new created value
 	  // attr->extra = bgp_attr_extra_get(attr);
