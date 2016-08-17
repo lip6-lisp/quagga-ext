@@ -999,6 +999,7 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 
 	  // link current extended attribute to the new created value
 	  // attr->extra = bgp_attr_extra_get(attr);
+	  /*
 	  struct attr_extra *extra = attr->extra;
 	  // extra->ecommunity
 	  struct ecommunity *ecom = extra->ecommunity;
@@ -1009,7 +1010,7 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 		  ecom->val = XMALLOC(MTYPE_ECOMMUNITY_VAL,ecom_length(ecom));
 		  memcpy(ecom->val, &eval.val, ECOMMUNITY_SIZE);
 	  }
-
+	  */
 	  zlog_debug (" testing ");
 
    }
