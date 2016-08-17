@@ -1000,17 +1000,21 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 	  // link current extended attribute to the new created value
 	  // attr->extra = bgp_attr_extra_get(attr);
 	  attr->extra = bgp_attr_extra_get(attr);
+
+	  attr->extra->ecommunity = XCALLOC (MTYPE_ECOMMUNITY, sizeof (struct ecommunity));
+	  // attr->extra->ecommunity = XMALLOC(MTYPE_ECOMMUNITY, sizeof (struct ecommunity));
 	  struct ecommunity *ecom = attr->extra->ecommunity;
 
 	  if ( ecom == NULL )
 		  zlog_debug (" ecom NULL ");
-	 // if (ecom->val == NULL )
-	  //{
+
+	  if (ecom->val == NULL )
+	  {
 		  zlog_debug (" ecom access ");
 		  ecom->size++;
 		  ecom->val = XMALLOC(MTYPE_ECOMMUNITY_VAL,ecom_length(ecom));
 		  memcpy(ecom->val, &(eval.val), ECOMMUNITY_SIZE);
-	//  }
+	  }
 
 	  /*
 	  struct attr_extra *extra = attr->extra;
