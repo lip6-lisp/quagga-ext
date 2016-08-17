@@ -999,6 +999,9 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 
 	  // link current extended attribute to the new created value
 	  // attr->extra = bgp_attr_extra_get(attr);
+	  attr->extra = bgp_attr_extra_get(attr);
+	  struct ecommunity *ecom = attr->extra->ecommunity;
+
 	  /*
 	  struct attr_extra *extra = attr->extra;
 	  // extra->ecommunity
