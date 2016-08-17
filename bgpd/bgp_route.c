@@ -978,6 +978,40 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 	attr->flag &= ~(ATTR_FLAG_BIT (BGP_ATTR_MULTI_EXIT_DISC));
     }
 
+  /* @nguyenh
+   * adding an extended community attribute which
+   * includes ip address of lisp MS
+   * + only sending to ebgp peer
+   */
+  if ( (bgp->lisp_enable) && (peer->sort == BGP_PEER_EBGP) )
+   {
+	  zlog_debug ("Setting extended community attribute")
+
+	  //create an extended community attribute value
+	  struct ecommunity_val eval;
+	  eval.val[0] = ECOMMUNITY_ENCODE_LISP;
+	  eval.val[1] = ECOMMUNITY_LISP_SUBTYPE_MSIP;
+	  eval.val[2] = 0;
+	  eval.val[3] = 0;
+	  memcpy(&eval.val[4],&bgp->lisp_ms_ip,sizeof(struct in_addr));
+
+	  // link current extended attribute to the new created value
+	  // attr->extra = bgp_attr_extra_get(attr);
+	  struct attr_extra *extra = attr->extra;
+	  // extra->ecommunity
+	  struct ecommunity *ecom = extra->ecommunity;
+
+	  if (ecom->val == NULL )
+	  {
+		  ecom->size++;
+		  ecom->val = XMALLOC(MTYPE_ECOMMUNITY_VAL,ecom_length(ecom));
+		  memcpy(ecom->val, &eval.val, ECOMMUNITY_SIZE);
+	  }
+
+	  zlog_debug (" testing ");
+
+   }
+   /* nguyenh */
 
 #define NEXTHOP_IS_V4 (\
     (safi != SAFI_ENCAP && p->family == AF_INET) || \
@@ -4331,6 +4365,7 @@ DEFUN (bgp_lisp_ms,
 	struct bgp *bgp;
 
 	bgp = vty->index;
+	bgp->lisp_enable = 0;
 
 	ret = inet_aton (argv[0], &ms);
 	if (! ret)
@@ -4339,6 +4374,8 @@ DEFUN (bgp_lisp_ms,
 		return CMD_WARNING;
 	}
 
+	// turn on the flag, support bgp configuration write at bgpd.c
+	bgp->lisp_enable = 1;
 	// update bgp with lisp MS address
 	IPV4_ADDR_COPY (&bgp->lisp_ms_ip,&ms);
 	// new attribute lisp_ms_ip for bgp structure defined in bgpd.h
@@ -5748,6 +5785,7 @@ bgp_redistribute_add (struct prefix *p, const struct in_addr *nexthop,
 	  /* Copy attribute for modification. */
 	  attr_new.extra = &extra_new;
 	  bgp_attr_dup (&attr_new, &attr);
+
 
 	  if (bgp->redist_metric_flag[afi][type])
 	    attr_new.med = bgp->redist_metric[afi][type];
@@ -15802,6 +15840,9 @@ bgp_route_init (void)
   bgp_distance_table = bgp_table_init (AFI_IP, SAFI_UNICAST);
 
   /* IPv4 BGP commands. */
+  /* @nguyenh */
+  install_element (BGP_NODE, &bgp_lisp_ms_cmd);
+
   install_element (BGP_NODE, &bgp_network_cmd);
   install_element (BGP_NODE, &bgp_network_mask_cmd);
   install_element (BGP_NODE, &bgp_network_mask_natural_cmd);
@@ -15843,6 +15884,9 @@ bgp_route_init (void)
   install_element (BGP_NODE, &no_aggregate_address_mask_summary_as_set_cmd);
 
   /* IPv4 unicast configuration.  */
+  /* @nguyenh */
+  install_element (BGP_IPV4_NODE, &bgp_lisp_ms_cmd);
+
   install_element (BGP_IPV4_NODE, &bgp_network_cmd);
   install_element (BGP_IPV4_NODE, &bgp_network_mask_cmd);
   install_element (BGP_IPV4_NODE, &bgp_network_mask_natural_cmd);
@@ -15878,6 +15922,9 @@ bgp_route_init (void)
   install_element (BGP_IPV4_NODE, &no_aggregate_address_mask_summary_as_set_cmd);
 
   /* IPv4 multicast configuration.  */
+  /* @nguyenh */
+  install_element (BGP_IPV4M_NODE, &bgp_lisp_ms_cmd);
+
   install_element (BGP_IPV4M_NODE, &bgp_network_cmd);
   install_element (BGP_IPV4M_NODE, &bgp_network_mask_cmd);
   install_element (BGP_IPV4M_NODE, &bgp_network_mask_natural_cmd);

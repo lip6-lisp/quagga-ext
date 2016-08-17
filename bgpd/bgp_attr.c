@@ -2828,6 +2828,13 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
 	}
     }
 
+  /* @nguyenh :putting 'extended community attribute' bits over stream
+   * reading from attr->extra
+   * considering peer->af_flags[afi][safi] , attr->flag, peer->sort
+   * we could introduce a specific flag for sending MS via ext_com,
+   * bypassing peer->sort check or just sending to ebgp peer
+   * ecommunity->size
+   * ecommunity->val */
   /* Extended Communities attribute. */
   if (CHECK_FLAG (peer->af_flags[afi][safi], PEER_FLAG_SEND_EXT_COMMUNITY) 
       && (attr->flag & ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES)))
@@ -2838,67 +2845,68 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
       
       if (peer->sort == BGP_PEER_IBGP
           || peer->sort == BGP_PEER_CONFED)
-	{
-	  if (attre->ecommunity->size * 8 > 255)
-	    {
-	      stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
-	      stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
-	      stream_putw (s, attre->ecommunity->size * 8);
-	    }
-	  else
-	    {
-	      stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
-	      stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
-	      stream_putc (s, attre->ecommunity->size * 8);
-	    }
-	  stream_put (s, attre->ecommunity->val, attre->ecommunity->size * 8);
-	}
+      {
+    	  if (attre->ecommunity->size * 8 > 255)
+    	  {
+			  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
+			  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+			  stream_putw (s, attre->ecommunity->size * 8);
+    	  }
+    	  else
+    	  {
+			  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
+			  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+			  stream_putc (s, attre->ecommunity->size * 8);
+    	  }
+    	  stream_put (s, attre->ecommunity->val, attre->ecommunity->size * 8);
+      }
       else
-	{
-	  u_int8_t *pnt;
-	  int tbit;
-	  int ecom_tr_size = 0;
-	  int i;
+      {
+		  u_int8_t *pnt;
+		  int tbit;
+		  int ecom_tr_size = 0;
+		  int i;
 
-	  for (i = 0; i < attre->ecommunity->size; i++)
-	    {
-	      pnt = attre->ecommunity->val + (i * 8);
-	      tbit = *pnt;
+		  for (i = 0; i < attre->ecommunity->size; i++)
+		  {
+			  pnt = attre->ecommunity->val + (i * 8);
+			  tbit = *pnt;
 
-	      if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
-		continue;
+			  if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
+				  continue;
 
-	      ecom_tr_size++;
-	    }
+			  ecom_tr_size++;
+		  }
 
-	  if (ecom_tr_size)
-	    {
-	      if (ecom_tr_size * 8 > 255)
-		{
-		  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
-		  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
-		  stream_putw (s, ecom_tr_size * 8);
-		}
-	      else
-		{
-		  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
-		  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
-		  stream_putc (s, ecom_tr_size * 8);
-		}
+		  if (ecom_tr_size)
+		  {
+			  if (ecom_tr_size * 8 > 255)
+			  {
+				  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
+				  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+				  stream_putw (s, ecom_tr_size * 8);
+			  }
+			  else
+			  {
+				  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
+				  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+				  stream_putc (s, ecom_tr_size * 8);
+			  }
 
-	      for (i = 0; i < attre->ecommunity->size; i++)
-		{
-		  pnt = attre->ecommunity->val + (i * 8);
-		  tbit = *pnt;
+			  for (i = 0; i < attre->ecommunity->size; i++)
+			  {
+				  pnt = attre->ecommunity->val + (i * 8);
+				  tbit = *pnt;
 
-		  if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
-		    continue;
+				  if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
+					continue;
 
-		  stream_put (s, pnt, 8);
-		}
-	    }
-	}
+				  stream_put (s, pnt, 8);
+			  }
+		  }
+      }
     }
+
 
   if ( send_as4_path )
     {

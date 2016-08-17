@@ -97,6 +97,7 @@ struct bgp
   struct in_addr router_id_static;
 
   /* @nguyenh */
+  u_int8_t lisp_enable;
   /* BGP LISP MAPPING SYSTEM IP */
   struct in_addr lisp_ms_ip;
   /* @nguyenh */

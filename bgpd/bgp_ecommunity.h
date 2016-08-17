@@ -26,6 +26,8 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define ECOMMUNITY_ENCODE_IP                0x01
 #define ECOMMUNITY_ENCODE_AS4               0x02
 #define ECOMMUNITY_ENCODE_OPAQUE            0x03
+/* @nguyenh */
+#define ECOMMUNITY_ENCODE_LISP            	0x04
 
 /* Low-order octet of the Extended Communities type field.  */
 #define ECOMMUNITY_ROUTE_TARGET             0x02
@@ -33,6 +35,11 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 /* Low-order octet of the Extended Communities type field for OPAQUE types */
 #define ECOMMUNITY_OPAQUE_SUBTYPE_ENCAP     0x0c
+
+/* @nguyenh */
+/* Low-order octet of the Extended Communities type field for LISP types */
+#define ECOMMUNITY_LISP_SUBTYPE_MSIP       	0x04
+
 
 /* Extended communities attribute string format.  */
 #define ECOMMUNITY_FORMAT_ROUTE_MAP            0

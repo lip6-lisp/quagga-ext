@@ -5426,6 +5426,12 @@ bgp_config_write (struct vty *vty)
 	vty_out (vty, " bgp router-id %s%s", inet_ntoa (bgp->router_id), 
 		 VTY_NEWLINE);
 
+      /* @nguyenh */
+      /* support writing lisp ms ip configuration parameter in vty or command line interface (cli) */
+      if ( bgp->lisp_enable )
+    	  vty_out (vty, "isp mapping system %s%s",  inet_ntoa (bgp->lisp_ms_ip),VTY_NEWLINE);
+      /* nguyenh */
+
       /* BGP log-neighbor-changes. */
       if (!bgp_flag_check (bgp, BGP_FLAG_LOG_NEIGHBOR_CHANGES))
 	vty_out (vty, " no bgp log-neighbor-changes%s", VTY_NEWLINE);
