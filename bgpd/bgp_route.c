@@ -1002,6 +1002,14 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 	  attr->extra = bgp_attr_extra_get(attr);
 	  struct ecommunity *ecom = attr->extra->ecommunity;
 
+	  if (ecom->val == NULL )
+	  {
+		  zlog_debug (" ecom access ");
+		  ecom->size++;
+		  ecom->val = XMALLOC(MTYPE_ECOMMUNITY_VAL,ecom_length(ecom));
+		  memcpy(ecom->val, &eval.val, ECOMMUNITY_SIZE);
+
+	  }
 	  /*
 	  struct attr_extra *extra = attr->extra;
 	  // extra->ecommunity
