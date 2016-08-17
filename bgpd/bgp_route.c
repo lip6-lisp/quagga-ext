@@ -985,7 +985,7 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
    */
   if ( (bgp->lisp_enable) && (peer->sort == BGP_PEER_EBGP) )
    {
-	  zlog_debug ("Setting extended community attribute")
+	  zlog_debug ("Setting extended community attribute");
 
 	  //create an extended community attribute value
 	  struct ecommunity_val eval;
