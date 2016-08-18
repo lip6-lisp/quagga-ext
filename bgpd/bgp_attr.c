@@ -2872,41 +2872,37 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
       }
       else
       {
-    	  // debug
-    	  zlog_debug (" ebgp or others");
+    	  // @nguyenh
+    	  // encoding MS_IP in extended community attribute is a special case
+    	  // we develop a separate code for handling that
+    	  // the size is fixed to no more than 8 octects
     	  if ((bgp->lisp_enable) && (peer->sort == BGP_PEER_EBGP))
+    	  {
     		  zlog_debug (" ebgp peer and lisp_ms_ip enable ");
-
-		  u_int8_t *pnt;
-		  int tbit;
-		  int ecom_tr_size = 0;
-		  int i;
-
-		  for (i = 0; i < attre->ecommunity->size; i++)
-		  {
-			  pnt = attre->ecommunity->val + (i * 8);
-			  tbit = *pnt;
-
-			  if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
-				  continue;
-
-			  ecom_tr_size++;
-		  }
-
-		  if (ecom_tr_size)
-		  {
-			  if (ecom_tr_size * 8 > 255)
+    		  if (attre->ecommunity->size * 8 > 255)
 			  {
+    			  zlog_debug (" more than 255 octets ");
 				  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
 				  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
-				  stream_putw (s, ecom_tr_size * 8);
+				  stream_putw (s, attre->ecommunity->size * 8);
 			  }
 			  else
 			  {
 				  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
 				  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
-				  stream_putc (s, ecom_tr_size * 8);
+				  stream_putc (s, attre->ecommunity->size * 8);
 			  }
+    		  stream_put (s, attre->ecommunity->val, attre->ecommunity->size * 8);
+    		  zlog_debug (" extended comm attribute is put on stream ");
+    	  }
+    	  // nguyenh
+    	  // original code, excluding else
+    	  else
+    	  {
+			  u_int8_t *pnt;
+			  int tbit;
+			  int ecom_tr_size = 0;
+			  int i;
 
 			  for (i = 0; i < attre->ecommunity->size; i++)
 			  {
@@ -2914,11 +2910,38 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
 				  tbit = *pnt;
 
 				  if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
-					continue;
+					  continue;
 
-				  stream_put (s, pnt, 8);
+				  ecom_tr_size++;
 			  }
-		  }
+
+			  if (ecom_tr_size)
+			  {
+				  if (ecom_tr_size * 8 > 255)
+				  {
+					  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
+					  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+					  stream_putw (s, ecom_tr_size * 8);
+				  }
+				  else
+				  {
+					  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
+					  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+					  stream_putc (s, ecom_tr_size * 8);
+				  }
+
+				  for (i = 0; i < attre->ecommunity->size; i++)
+				  {
+					  pnt = attre->ecommunity->val + (i * 8);
+					  tbit = *pnt;
+
+					  if (CHECK_FLAG (tbit, ECOMMUNITY_FLAG_NON_TRANSITIVE))
+						continue;
+
+					  stream_put (s, pnt, 8);
+				  }
+			  }
+    	  }
       }
     }
 
