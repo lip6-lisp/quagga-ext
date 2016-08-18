@@ -2836,9 +2836,16 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
    * ecommunity->size
    * ecommunity->val */
   /* Extended Communities attribute. */
+
+  // debug
+  zlog_debug (" bgp_packet_attributes ");
+
   if (CHECK_FLAG (peer->af_flags[afi][safi], PEER_FLAG_SEND_EXT_COMMUNITY) 
       && (attr->flag & ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES)))
     {
+	  // debug
+	  zlog_debug (" extended attr sent ");
+
       struct attr_extra *attre = attr->extra;
       
       assert (attre);
