@@ -1794,6 +1794,9 @@ bgp_attr_ext_communities (struct bgp_attr_parser_args *args)
   struct attr *const attr = args->attr;  
   const bgp_size_t length = args->length;
   
+  // nguyenh debug
+  zlog_debug (" bgp_attr_ext_communities");
+
   if (length == 0)
     {
       if (attr->extra)
@@ -1813,6 +1816,9 @@ bgp_attr_ext_communities (struct bgp_attr_parser_args *args)
                                args->total);
   
   attr->flag |= ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES);
+
+  // nguyenh debug
+  zlog_debug (" parsed done ");
 
   return BGP_ATTR_PARSE_PROCEED;
 }
@@ -2051,12 +2057,20 @@ bgp_attr_check (struct peer *peer, struct attr *attr)
   return BGP_ATTR_PARSE_PROCEED;
 }
 
+/* @nguyenh
+ * considering a different message parsing for
+ * extended community attribute that including MS ipaddr
+ */
 /* Read attribute of update packet.  This function is called from
    bgp_update_receive() in bgp_packet.c.  */
 bgp_attr_parse_ret_t
 bgp_attr_parse (struct peer *peer, struct attr *attr, bgp_size_t size,
 		struct bgp_nlri *mp_update, struct bgp_nlri *mp_withdraw)
 {
+
+  // nguyenh debug
+  zlog_debug ("bgp_attr_parse: parsing bgp attributes ");
+
   int ret;
   u_char flag = 0;
   u_char type = 0;
@@ -2184,6 +2198,14 @@ bgp_attr_parse (struct peer *peer, struct attr *attr, bgp_size_t size,
         }
 
       /* OK check attribute and store it's value. */
+
+      // nguyenh debug
+      if (type == BGP_ATTR_EXT_COMMUNITIES )
+    	  zlog_debug (" received message that includes BGP_ATTR_EXT_COMMUNITIES");
+      else
+    	  zlog_debug (" BGP_ATTR_EXT_COMMUNITIES is not included ");
+
+
       switch (type)
 	{
 	case BGP_ATTR_ORIGIN:
@@ -2233,9 +2255,9 @@ bgp_attr_parse (struct peer *peer, struct attr *attr, bgp_size_t size,
 	case BGP_ATTR_EXT_COMMUNITIES:
 	  ret = bgp_attr_ext_communities (&attr_args);
 	  break;
-        case BGP_ATTR_ENCAP:
-          ret = bgp_attr_encap (type, peer, length, attr, flag, startp);
-          break;
+	case BGP_ATTR_ENCAP:
+	  ret = bgp_attr_encap (type, peer, length, attr, flag, startp);
+	  break;
 	default:
 	  ret = bgp_attr_unknown (&attr_args);
 	  break;
@@ -2875,13 +2897,20 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
     	  // @nguyenh
     	  // encoding MS_IP in extended community attribute is a special case
     	  // we develop a separate code for handling that
-    	  // the size is fixed to no more than 8 octects
     	  if ((bgp->lisp_enable) && (peer->sort == BGP_PEER_EBGP))
     	  {
-    		  zlog_debug (" ebgp peer and lisp_ms_ip enable ");
+    		  zlog_debug (" extended community attribute includes IP addr of LISP MS");
+
+    		  // in our case, the size is fixed to no more than 8 octects
+    		  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS);
+    		  // think about special flag here to trigger different message handling when receiving
+    		  // or just based on the higher-order and lower-order bit which are contained in the attribute
+    		  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
+    		  stream_putc (s, attre->ecommunity->size * 8);
+
+    		  /*
     		  if (attre->ecommunity->size * 8 > 255)
 			  {
-    			  zlog_debug (" more than 255 octets ");
 				  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
 				  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
 				  stream_putw (s, attre->ecommunity->size * 8);
@@ -2892,8 +2921,9 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
 				  stream_putc (s, BGP_ATTR_EXT_COMMUNITIES);
 				  stream_putc (s, attre->ecommunity->size * 8);
 			  }
+			  */
     		  stream_put (s, attre->ecommunity->val, attre->ecommunity->size * 8);
-    		  zlog_debug (" extended comm attribute is put on stream ");
+    		  zlog_debug (" putting on stream the extended community attribute ");
     	  }
     	  // nguyenh
     	  // original code, excluding else
