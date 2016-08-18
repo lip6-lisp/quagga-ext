@@ -988,7 +988,7 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 	  // turn on the flag, indicate sending extended community attribute to peer
 	  SET_FLAG (peer->af_flags[afi][safi], PEER_FLAG_SEND_EXT_COMMUNITY);
 	  // turn on the flag, indicating the extended community attribute is included in the advertisement
-	  SET_FLAG(attr->flag,ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES))
+	  SET_FLAG(attr->flag,ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES));
 	  // these two flags help to trigger bgp_packet_attribute to put the extended community attribute into stream
 
 	  zlog_debug ("Setting extended community attribute");
