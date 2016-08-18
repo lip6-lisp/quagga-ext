@@ -601,6 +601,9 @@ ecommunity_ecom2str (struct ecommunity *ecom, int format)
   int len = 0;
   int first = 1;
 
+  // @nguyenh debug
+  zlog_debug (" ecommunity_ecom2str ");
+
   /* For parse Extended Community attribute tupple. */
   struct ecommunity_as
   {
