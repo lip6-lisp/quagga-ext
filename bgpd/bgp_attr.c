@@ -2853,6 +2853,9 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
       if (peer->sort == BGP_PEER_IBGP
           || peer->sort == BGP_PEER_CONFED)
       {
+    	  // debug
+    	  zlog_debug (" BGP_PEER_IBGP or BGP_PEER_CONFED ");
+
     	  if (attre->ecommunity->size * 8 > 255)
     	  {
 			  stream_putc (s, BGP_ATTR_FLAG_OPTIONAL|BGP_ATTR_FLAG_TRANS|BGP_ATTR_FLAG_EXTLEN);
@@ -2869,6 +2872,11 @@ bgp_packet_attribute (struct bgp *bgp, struct peer *peer,
       }
       else
       {
+    	  // debug
+    	  zlog_debug (" ebgp or others");
+    	  if ((bgp->lisp_enable) && (peer->sort == BGP_PEER_EBGP))
+    		  zlog_debug (" ebgp peer and lisp_ms_ip enable ");
+
 		  u_int8_t *pnt;
 		  int tbit;
 		  int ecom_tr_size = 0;
