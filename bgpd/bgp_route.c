@@ -80,6 +80,8 @@ lisp_ms_write(const char filename[], struct prefix *p, char *ms_ip)
 
 	fclose(fp);
 }
+
+static void
 lisp_ms_init(const char filename[])
 {
 	FILE *fp;
