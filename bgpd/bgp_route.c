@@ -60,6 +60,25 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 extern const char *bgp_origin_str[];
 extern const char *bgp_origin_long_str[];
 
+/* @nguyenh */
+// recording prefix-msip mapping to a separated txt file
+static void
+lisp_ms_write(char filename[], struct prefix *p, char *ms_ip)
+{
+	FILE *fp;
+	fp = fopen(filename, "w+");
+
+	// follow the format "<prefix>:<mapping system ip>")
+	fprintf(fp, "%s/%d:%s\n",
+				inet_ntop(p->family, &p->u.prefix, buf, SU_ADDRSTRLEN),
+				p->prefixlen,
+				ms_ip);
+
+	fclose(fp);
+}
+
+
+
 static struct bgp_node *
 bgp_afi_node_get (struct bgp_table *table, afi_t afi, safi_t safi, struct prefix *p,
 		  struct prefix_rd *prd)
@@ -2287,11 +2306,16 @@ bgp_update_main (struct peer *peer, struct prefix *p, struct attr *attr,
 
   attr_new = bgp_attr_intern (&new_attr);
 
-  zlog_debug (" ms ip for prefi %s/%d is %s",
+  zlog_debug (" ms ip for prefix %s/%d is %s",
 		  inet_ntop(p->family, &p->u.prefix, buf, SU_ADDRSTRLEN),
   	      p->prefixlen,
   	      attr_new->extra->ecommunity->str);
 
+  // @nguyenh: add the prefix-MS mapping into text file for latter use
+  // since quagga is not going to use the MS related information
+  // we should rather put them in a separated text file
+  // <prefix:ms>
+  lisp_ms_write("lisp_ms_list.txt",p,attr_new->extra->ecommunity->str);
 
   /* If the update is implicit withdraw. */
   if (ri)
