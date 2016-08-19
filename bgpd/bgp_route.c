@@ -2282,8 +2282,16 @@ bgp_update_main (struct peer *peer, struct prefix *p, struct attr *attr,
 	  goto filtered;
 	}
     }
+  // @nguyenh debug
+  zlog_debug ("bgp update main ");
 
   attr_new = bgp_attr_intern (&new_attr);
+
+  zlog_debug (" ms ip for prefi %s/%d is %s",
+		  inet_ntop(p->family, &p->u.prefix, buf, SU_ADDRSTRLEN),
+  	      p->prefixlen,
+  	      attr_new->extra->ecommunity->str);
+
 
   /* If the update is implicit withdraw. */
   if (ri)
@@ -2425,6 +2433,7 @@ bgp_update_main (struct peer *peer, struct prefix *p, struct attr *attr,
 
       return 0;
     }
+
 
   /* Received Logging. */
   if (BGP_DEBUG (update, UPDATE_IN))  
