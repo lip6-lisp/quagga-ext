@@ -67,7 +67,9 @@ lisp_ms_write(const char filename[], struct prefix *p, char *ms_ip)
 {
 	char buf[SU_ADDRSTRLEN];
 	FILE *fp;
-	fp = fopen(filename, "w+");
+	//fp = fopen(filename, "w+");
+	fp = fopen(filename, "a"); // "a" for append, append to end of file
+	// so each time bgpd is init, we need to clear the file, make it empty
 
 	// follow the format "<prefix>:<mapping system ip>")
 	fprintf(fp, "%s/%d:%s\n",
@@ -77,7 +79,7 @@ lisp_ms_write(const char filename[], struct prefix *p, char *ms_ip)
 
 	fclose(fp);
 }
-
+// nguyenh
 
 
 static struct bgp_node *
@@ -2316,7 +2318,7 @@ bgp_update_main (struct peer *peer, struct prefix *p, struct attr *attr,
   // since quagga is not going to use the MS related information
   // we should rather put them in a separated text file
   // <prefix:ms>
-  lisp_ms_write("lisp_ms_list.txt",p,attr_new->extra->ecommunity->str);
+  lisp_ms_write("/usr/local/etc/lisp_ms_list.txt",p,attr_new->extra->ecommunity->str);
 
   /* If the update is implicit withdraw. */
   if (ri)
