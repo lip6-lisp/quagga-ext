@@ -1818,7 +1818,7 @@ bgp_attr_ext_communities (struct bgp_attr_parser_args *args)
   attr->flag |= ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES);
 
   // nguyenh debug
-  zlog_debug (" parsed done ");
+  zlog_debug (" parsed done with ms ip is %s",attr->extra->ecommunity->str);
 
   return BGP_ATTR_PARSE_PROCEED;
 }

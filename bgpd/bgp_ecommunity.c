@@ -605,6 +605,10 @@ ecommunity_ecom2str (struct ecommunity *ecom, int format)
   zlog_debug (" ecommunity_ecom2str ");
 
   /* For parse Extended Community attribute tupple. */
+
+  // @nguyenh
+  struct in_addr ms_ip;
+
   struct ecommunity_as
   {
     as_t as;
@@ -629,6 +633,7 @@ ecommunity_ecom2str (struct ecommunity *ecom, int format)
   str_size = ECOMMUNITY_STR_DEFAULT_LEN + 1;
   str_pnt = 0;
 
+  // nguyenh we have size of 1
   for (i = 0; i < ecom->size; i++)
     {
       /* Make it sure size is enough.  */
@@ -652,6 +657,9 @@ ecommunity_ecom2str (struct ecommunity *ecom, int format)
         case ECOMMUNITY_ENCODE_AS:
         case ECOMMUNITY_ENCODE_IP:
         case ECOMMUNITY_ENCODE_AS4:
+        // @nguyenh: case of ECOMMUNITY_ENCODE_LISP, break and avoid jumping to the default case
+        case ECOMMUNITY_ENCODE_LISP:
+
           break;
 
         case ECOMMUNITY_ENCODE_OPAQUE:
@@ -676,31 +684,49 @@ ecommunity_ecom2str (struct ecommunity *ecom, int format)
 
       /* Low-order octet of type. */
       type = *pnt++;
-      if (type !=  ECOMMUNITY_ROUTE_TARGET && type != ECOMMUNITY_SITE_ORIGIN)
-	{
-	  len = sprintf (str_buf + str_pnt, "?");
-	  str_pnt += len;
-	  first = 0;
-	  continue;
-	}
+
+      //if (type !=  ECOMMUNITY_ROUTE_TARGET && type != ECOMMUNITY_SITE_ORIGIN)
+      // @nguyenh: add 1 more condition to ensure not including "?" in the buffer string in case of MS_IP
+      if (type !=  ECOMMUNITY_ROUTE_TARGET && type != ECOMMUNITY_SITE_ORIGIN && type !=ECOMMUNITY_LISP_SUBTYPE_MSIP)
+      {
+    	  len = sprintf (str_buf + str_pnt, "?");
+    	  str_pnt += len;
+    	  first = 0;
+    	  continue;
+      }
+
 
       switch (format)
-	{
-	case ECOMMUNITY_FORMAT_COMMUNITY_LIST:
-	  prefix = (type == ECOMMUNITY_ROUTE_TARGET ? "rt " : "soo ");
-	  break;
-	case ECOMMUNITY_FORMAT_DISPLAY:
-	  prefix = (type == ECOMMUNITY_ROUTE_TARGET ? "RT:" : "SoO:");
-	  break;
-	case ECOMMUNITY_FORMAT_ROUTE_MAP:
-	  prefix = "";
-	  break;
-	default:
-	  prefix = "";
-	  break;
-	}
+      {
+		case ECOMMUNITY_FORMAT_COMMUNITY_LIST:
+		  prefix = (type == ECOMMUNITY_ROUTE_TARGET ? "rt " : "soo ");
+		  break;
+		case ECOMMUNITY_FORMAT_DISPLAY:
+		  prefix = (type == ECOMMUNITY_ROUTE_TARGET ? "RT:" : "SoO:");
+		  break;
+		case ECOMMUNITY_FORMAT_ROUTE_MAP:
+		  prefix = "";
+		  break;
+		default:
+		  prefix = "";
+		  break;
+      }
 
       /* Put string into buffer.  */
+
+      /* @nguyenh */
+      if (encode == ECOMMUNITY_ENCODE_LISP && type == ECOMMUNITY_LISP_SUBTYPE_MSIP)
+      {
+    	  pnt += 2; // skip 2 octets
+    	  memcpy (&ms_ip, pnt, 4);
+    	  len = sprintf (str_buf + str_pnt, "%s", inet_ntoa(ms_ip)); // output string should only containt the ip address of ms
+    	  str_pnt += len;
+    	  // currently only 1 ip address is attached
+    	  // the str_buf is returned
+    	  // and ecom->str = str_buf
+      }
+
+
       if (encode == ECOMMUNITY_ENCODE_AS4)
 	{
 	  eas.as = (*pnt++ << 24);
