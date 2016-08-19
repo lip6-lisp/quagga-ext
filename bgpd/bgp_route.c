@@ -62,6 +62,7 @@ extern const char *bgp_origin_long_str[];
 
 /* @nguyenh */
 // recording prefix-msip mapping to a separated txt file
+const char LISP_MAPPING[]="/usr/local/etc/lisp_ms.txt";
 static void
 lisp_ms_write(const char filename[], struct prefix *p, char *ms_ip)
 {
@@ -77,6 +78,13 @@ lisp_ms_write(const char filename[], struct prefix *p, char *ms_ip)
 				p->prefixlen,
 				ms_ip);
 
+	fclose(fp);
+}
+lisp_ms_init(const char filename[])
+{
+	FILE *fp;
+	fp = fopen(filename, "w");
+	// so each time bgpd is init, we need to empty the mapping file
 	fclose(fp);
 }
 // nguyenh
@@ -2318,7 +2326,7 @@ bgp_update_main (struct peer *peer, struct prefix *p, struct attr *attr,
   // since quagga is not going to use the MS related information
   // we should rather put them in a separated text file
   // <prefix:ms>
-  lisp_ms_write("/usr/local/etc/lisp_ms_list.txt",p,attr_new->extra->ecommunity->str);
+  lisp_ms_write(LISP_MAPPING,p,attr_new->extra->ecommunity->str);
 
   /* If the update is implicit withdraw. */
   if (ri)
@@ -15900,6 +15908,10 @@ bgp_route_init (void)
 {
   /* Init BGP distance table. */
   bgp_distance_table = bgp_table_init (AFI_IP, SAFI_UNICAST);
+
+  /* @nguyenh */
+  // clear the mapping file
+  lisp_ms_init(LISP_MAPPING);
 
   /* IPv4 BGP commands. */
   /* @nguyenh */
