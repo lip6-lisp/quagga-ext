@@ -63,8 +63,9 @@ extern const char *bgp_origin_long_str[];
 /* @nguyenh */
 // recording prefix-msip mapping to a separated txt file
 static void
-lisp_ms_write(char filename[], struct prefix *p, char *ms_ip)
+lisp_ms_write(const char filename[], struct prefix *p, char *ms_ip)
 {
+	char buf[SU_ADDRSTRLEN];
 	FILE *fp;
 	fp = fopen(filename, "w+");
 
