@@ -6647,7 +6647,7 @@ DEFUN (ospf_lisp_msf_timer,
 	// get the timer value
 	VTY_GET_INTEGER("LISP msf type",t_value,argv[1]);
 
-	if (strcmp(argv[0],utimer) == 0)
+	if (strcmp(argv[0],timer) == 0)
 		ospf->mapping_service_func->msf_unavailable_timer = t_value;
 	else
 		ospf->mapping_service_func->msf_reboot_timer = t_value;
