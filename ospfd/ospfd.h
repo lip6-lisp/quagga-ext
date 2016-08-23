@@ -275,7 +275,52 @@ struct ospf
   u_int32_t rx_lsa_count;
  
   struct route_table *distance_table;
+
+  /* @nguyenh */
+  u_int8_t lisp_enable;
+#define OSPF_LISP_MSF_DISABLE		0
+#define OSPF_LISP_MSF_ENABLE		1
+
+  struct lisp_msf *mapping_service_func;
 };
+
+/* @nguyenh : new lisp_msf structure */
+struct lisp_msf
+{
+	// mapping service function type
+	u_int8_t msf_type;
+#define LISP_MSF_TYPE_M_SERVER		1
+#define LISP_MSF_TYPE_M_RESOLVER	2
+#define LISP_MSF_TYPE_M_BOTH		3
+
+	// list of locator ip address
+	// temporary work with 1 locator, then a list of locator
+	// struct in_addr 	locator;
+	struct list	*locator_list;
+	// this is a list of struct in_addr
+
+	// timer
+	u_int32_t msf_unavailable_timer;
+	u_int32_t msf_reboot_timer;
+
+	// status
+	u_int8_t msf_diagnosis_status;
+#define LISP_MSF_DIAGNOSIS_OFF		0
+#define LISP_MSF_DIAGNOSIS_ON		1
+
+	// status of mapping DB
+	u_int8_t msf_mapping_db_status;
+#define LISP_MSF_MAPPING_DB_EMPTY	0
+#define LISP_MSF_MAPPING_DB_NOT_SYN	1
+#define LISP_MSF_MAPPING_DB_SYN		2
+
+	// status of mapping service instance
+	u_int8_t msf_mapping_service;
+#define LISP_MSF_MAPPING_SERVICE_DISABLE	0
+#define LISP_MSF_MAPPING_SERVICE_ENABLE		1
+
+};
+/* nguyenh */
 
 /* OSPF area structure. */
 struct ospf_area

@@ -6562,6 +6562,238 @@ DEFUN (no_ospf_max_metric_router_lsa_shutdown,
   return CMD_SUCCESS;
 }
 
+/* @nguyenh: adding new configuration paramenters for LISP mapping service function  */
+DEFUN (ospf_lisp_msf,
+       ospf_lisp_msf_cmd,
+       "lisp msf type <1-3>",
+       "Enable LISP mapping service function advertising \n"
+       "Set the mapping service function type \n")
+{
+	struct ospf *ospf = vty->index;
+	u_int8_t type;
+
+	// lisp msf advertising is supported in this ospfd instance
+	// need to initialize lisp_enable = OSPF_LISP_MSF_DISABLE
+	ospf->lisp_enable = OSPF_LISP_MSF_ENABLE;
+	// create the lisp_msf structure and set the type of msf
+	// xcalloc -> using the memtypes  MTYPE_OSPF_LSA_DATA or MTYPE_OSPF_TMP
+	ospf->mapping_service_func = XCALLOC (MTYPE_OSPF_TMP, sizeof (struct lisp_msf));
+	VTY_GET_INTEGER("LISP msf type",type,argv[0]);
+
+	ospf->mapping_service_func->msf_type = type;
+
+	return CMD_SUCCESS;
+}
+
+DEFUN (ospf_lisp_msf_locator,
+       ospf_lisp_msf_locator_cmd,
+       "lisp msf locator-id A.B.C.D",
+       "locator-id for mapping service function \n")
+{
+	struct ospf *ospf = vty->index;
+	int ret;
+	struct in_addr locator_id;
+
+	if ( !ospf->lisp_enable )
+	{
+		vty_out (vty, "LISP MSF advertising is not enabled yet %s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+	ret = inet_aton (argv[0], &locator_id);
+
+	if (!ret)
+	{
+		vty_out (vty, "Please specify Locator ID by A.B.C.D%s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	// adding locator id in to list of locators
+	// if ( ospf->mapping_service_func->locator_list == NULL )
+
+	// it is the first locator configured
+	// 	create a list first then
+	// 	adding locator to the locator list
+	if ( !ospf->mapping_service_func->locator_list )
+	{
+		ospf->mapping_service_func->locator_list = list_new();
+		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
+	}
+	// there are already some locators on the list
+	else
+	{
+		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
+	}
+
+	return CMD_SUCCESS;
+}
+
+DEFUN (ospf_lisp_msf_timer,
+       ospf_lisp_msf_timer_cmd,
+       "msf timer (unavailable|reboot) <0-10000>",
+       "Set the mapping service function timer \n")
+{
+	struct ospf *ospf = vty->index;
+	u_int32_t t_value;
+
+	if ( !ospf->lisp_enable )
+	{
+		vty_out (vty, "LISP MSF advertising is not enabled yet %s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	const char *timer="unavailable";
+	// const char *rtimer="reboot";
+
+	// get the timer value
+	VTY_GET_INTEGER("LISP msf type",t_value,argv[1]);
+
+	if (strcmp(argv[0],utimer) == 0)
+		ospf->mapping_service_func->msf_unavailable_timer = t_value;
+	else
+		ospf->mapping_service_func->msf_reboot_timer = t_value;
+
+	return CMD_SUCCESS;
+}
+
+DEFUN (ospf_lisp_msf_service_status,
+		ospf_lisp_msf_service_status_cmd,
+       "msf service (on|off)",
+       "Set status of mapping service function instance \n")
+{
+	struct ospf *ospf = vty->index;
+
+	if ( !ospf->lisp_enable )
+	{
+		vty_out (vty, "LISP MSF advertising is not enabled yet %s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	const char *s="on";
+
+	// ON
+	if (strcmp(argv[0],s) == 0)
+		ospf->mapping_service_func->msf_mapping_service = LISP_MSF_MAPPING_SERVICE_ENABLE;
+	// OFF
+	else
+		ospf->mapping_service_func->msf_mapping_service = LISP_MSF_MAPPING_SERVICE_DISABLE;
+
+	return CMD_SUCCESS;
+}
+
+DEFUN (ospf_lisp_msf_diagnosis_status,
+		ospf_lisp_msf_diagnosis_status_cmd,
+       "msf diagnosis (on|off)",
+       "Set status of msf diagnosis service \n")
+{
+	struct ospf *ospf = vty->index;
+
+	if ( !ospf->lisp_enable )
+	{
+		vty_out (vty, "LISP MSF advertising is not enabled yet %s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	const char *s="on";
+
+	// ON
+	if (strcmp(argv[0],s) == 0)
+		ospf->mapping_service_func->msf_diagnosis_status = LISP_MSF_DIAGNOSIS_ON;
+	// OFF
+	else
+		ospf->mapping_service_func->msf_diagnosis_status = LISP_MSF_DIAGNOSIS_OFF;
+
+	return CMD_SUCCESS;
+}
+
+DEFUN (ospf_lisp_msf_db_status,
+		ospf_lisp_msf_db_status_cmd,
+       "msf database (empty|sync|notsync)",
+       "Set status of mapping db \n")
+{
+	struct ospf *ospf = vty->index;
+
+	if ( !ospf->lisp_enable )
+	{
+		vty_out (vty, "LISP MSF advertising is not enabled yet %s", VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	const char *empty="empty";
+	const char *sync="sync";
+	// empty
+	if (strcmp(argv[0],empty) == 0)
+		ospf->mapping_service_func->msf_mapping_db_status = LISP_MSF_MAPPING_DB_EMPTY;
+	// sync
+	else if (strcmp(argv[0],sync) == 0)
+		ospf->mapping_service_func->msf_mapping_db_status = LISP_MSF_MAPPING_DB_SYN;
+	// not sync
+	else
+		ospf->mapping_service_func->msf_mapping_db_status = LISP_MSF_MAPPING_DB_NOT_SYN;
+
+
+	return CMD_SUCCESS;
+}
+
+
+
+/* references
+
+DEFUN (ospf_router_id,
+       ospf_router_id_cmd,
+       "ospf router-id A.B.C.D",
+       "OSPF specific commands\n"
+       "router-id for the OSPF process\n"
+       "OSPF router-id in IP address format\n")
+{
+  struct ospf *ospf = vty->index;
+  struct in_addr router_id;
+  int ret;
+
+  ret = inet_aton (argv[0], &router_id);
+  if (!ret)
+    {
+      vty_out (vty, "Please specify Router ID by A.B.C.D%s", VTY_NEWLINE);
+      return CMD_WARNING;
+    }
+
+  ospf->router_id_static = router_id;
+
+  ospf_router_id_update (ospf);
+
+  return CMD_SUCCESS;
+}
+
+DEFUN (ospf_network_area,
+       ospf_network_area_cmd,
+       "network A.B.C.D/M area (A.B.C.D|<0-4294967295>)",
+       "Enable routing on an IP network\n"
+       "OSPF network prefix\n"
+       "Set the OSPF area ID\n"
+       "OSPF area ID in IP address format\n"
+       "OSPF area ID as a decimal value\n")
+{
+  struct ospf *ospf = vty->index;
+  struct prefix_ipv4 p;
+  struct in_addr area_id;
+  int ret, format;
+
+  // Get network prefix and Area ID.
+  VTY_GET_IPV4_PREFIX ("network prefix", p, argv[0]);
+  VTY_GET_OSPF_AREA_ID (area_id, format, argv[1]);
+
+  ret = ospf_network_set (ospf, &p, area_id);
+  if (ret == 0)
+    {
+      vty_out (vty, "There is already same network statement.%s", VTY_NEWLINE);
+      return CMD_WARNING;
+    }
+
+  return CMD_SUCCESS;
+}
+*/
+
+/* nguyenh */
+
 static void
 config_write_stub_router (struct vty *vty, struct ospf *ospf)
 {
@@ -7743,6 +7975,14 @@ ospf_vty_init (void)
   install_element (CONFIG_NODE, &no_router_ospf_cmd);
 
   install_default (OSPF_NODE);
+
+  /* @nguyenh */
+  install_element (OSPF_NODE, &ospf_lisp_msf_cmd);
+  install_element (OSPF_NODE, &ospf_lisp_msf_locator_cmd);
+  install_element (OSPF_NODE, &ospf_lisp_msf_timer_cmd);
+  install_element (OSPF_NODE, &ospf_lisp_msf_service_status_cmd);
+  install_element (OSPF_NODE, &ospf_lisp_msf_diagnosis_status_cmd);
+  install_element (OSPF_NODE, &ospf_lisp_msf_db_status_cmd);
 
   /* "ospf router-id" commands. */
   install_element (OSPF_NODE, &ospf_router_id_cmd);
