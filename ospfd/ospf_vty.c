@@ -6601,13 +6601,22 @@ DEFUN (ospf_lisp_msf_locator,
 	}
 	ret = inet_aton (argv[0], &locator_id);
 
-	zlog_debug (" msf locator-id %s",inet_ntoa(locator_id));
+
 
 	if (!ret)
 	{
 		vty_out (vty, "Please specify Locator ID by A.B.C.D%s", VTY_NEWLINE);
 		return CMD_WARNING;
 	}
+
+	// just for testing
+	if (ret)
+	{
+		vty_out (vty, "MSF Locator ID %s", inet_ntoa(locator_id),VTY_NEWLINE);
+		return CMD_WARNING;
+	}
+
+	zlog_debug (" msf locator %s",inet_ntoa(locator_id));
 
 	// adding locator id in to list of locators
 	// if ( ospf->mapping_service_func->locator_list == NULL )
