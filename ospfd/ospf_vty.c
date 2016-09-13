@@ -6620,13 +6620,13 @@ DEFUN (ospf_lisp_msf_locator,
 	{
 		ospf->mapping_service_func->locator_list = list_new();
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
-		zlog_debug ("Adding first locator into the list");
+		// zlog_debug ("Adding first locator into the list");
 	}
 	// there are already some locators on the list
 	else
 	{
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
-		zlog_debug ("Adding locator into the list");
+		// zlog_debug ("Adding locator into the list");
 	}
 
 	return CMD_SUCCESS;
