@@ -6601,6 +6601,8 @@ DEFUN (ospf_lisp_msf_locator,
 	}
 	ret = inet_aton (argv[0], &locator_id);
 
+	zlog_debug (" msf locator-id %s",inet_ntoa(locator_id));
+
 	if (!ret)
 	{
 		vty_out (vty, "Please specify Locator ID by A.B.C.D%s", VTY_NEWLINE);
@@ -6618,13 +6620,13 @@ DEFUN (ospf_lisp_msf_locator,
 	{
 		ospf->mapping_service_func->locator_list = list_new();
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
-		vty_out (vty, "Adding first locator into the list %s", VTY_NEWLINE);
+		zlog_debug ("Adding first locator into the list");
 	}
 	// there are already some locators on the list
 	else
 	{
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
-		vty_out (vty, "Adding locator into the list %s", VTY_NEWLINE);
+		zlog_debug ("Adding locator into the list");
 	}
 
 	return CMD_SUCCESS;
