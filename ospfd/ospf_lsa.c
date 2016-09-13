@@ -772,15 +772,16 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 	  zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func->msf_type);
 	  struct in_addr *locator_id;
 	  struct listnode *node,*nnode;
-	  struct in_addr loc;
-	  //u_char buff[INET_ADDRSTRLEN];
+	  //struct in_addr loc;
+	  u_char buff[INET_ADDRSTRLEN];
 
 	  for (ALL_LIST_ELEMENTS (ospf->mapping_service_func->locator_list, node, nnode, locator_id))
 	  {
-		  memcpy(&loc,locator_id, sizeof(loc));
-		  //inet_ntop(AF_INET,locator_id,buff,INET_ADDRSTRLEN);
+		  // memcpy(&loc,locator_id, sizeof(loc));
+		  inet_ntop(AF_INET,locator_id,buff,INET_ADDRSTRLEN);
 		  //vty_out (vty, " msf locator-id %s%s",inet_ntoa(loc), VTY_NEWLINE);
-		  zlog_debug (" msf locator-id %s",inet_ntoa(loc));
+		  //zlog_debug (" msf locator-id %s",inet_ntoa(loc));
+		  zlog_debug (" msf locator-id %s",buff);
 	  }
   }
   else
