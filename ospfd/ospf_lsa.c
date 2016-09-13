@@ -767,7 +767,10 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   // we can refer to them by ospf->mapping_service_func
   // then putting them in to stream s
   struct ospf *ospf = area->ospf;
-  zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func.msf_type);
+  if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
+	  zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func->msf_type);
+  else
+	  zlog_debug ("ospf_router_lsa_body_set: lisp msf support is not enabled ");
 
 }
 
