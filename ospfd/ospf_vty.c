@@ -6610,11 +6610,13 @@ DEFUN (ospf_lisp_msf_locator,
 	}
 
 	// just for testing
+	/*
 	if (ret)
 	{
-		vty_out (vty, "MSF Locator ID %s", inet_ntoa(locator_id),VTY_NEWLINE);
+		vty_out (vty, "MSF Locator ID %s%s", inet_ntoa(locator_id),VTY_NEWLINE);
 		return CMD_WARNING;
 	}
+	*/
 
 	zlog_debug (" msf locator %s",inet_ntoa(locator_id));
 
@@ -6626,8 +6628,14 @@ DEFUN (ospf_lisp_msf_locator,
 	// 	adding locator to the locator list
 	if ( !ospf->mapping_service_func->locator_list )
 	{
+		ospf->mapping_service_func->nloc = 0;
+
 		ospf->mapping_service_func->locator_list = list_new();
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
+
+		memcpy( &ospf->mapping_service_func->locator_id[ospf->mapping_service_func->nloc], &locator_id, sizeof(locator_id) );
+		ospf->mapping_service_func->nloc++;
+
 		zlog_debug ("Adding first locator into the list");
 	}
 	// there are already some locators on the list
@@ -6635,6 +6643,9 @@ DEFUN (ospf_lisp_msf_locator,
 	{
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
 		zlog_debug ("Adding locator into the list");
+
+		memcpy( &ospf->mapping_service_func->locator_id[ospf->mapping_service_func->nloc], &locator_id, sizeof(locator_id) );
+		ospf->mapping_service_func->nloc++;
 	}
 
 	return CMD_SUCCESS;

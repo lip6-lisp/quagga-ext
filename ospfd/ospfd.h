@@ -289,15 +289,22 @@ struct lisp_msf
 {
 	// mapping service function type
 	u_int8_t msf_type;
+
+
 #define LISP_MSF_TYPE_M_SERVER		1
 #define LISP_MSF_TYPE_M_RESOLVER	2
 #define LISP_MSF_TYPE_M_BOTH		3
 
+#define LISP_MSF_MAX_LOC			10
 	// list of locator ip address
 	// temporary work with 1 locator, then a list of locator
 	// struct in_addr 	locator;
 	struct list	*locator_list;
 	// this is a list of struct in_addr
+
+	struct in_addr locator_id[LISP_MSF_MAX_LOC];
+	int nloc;
+
 
 	// timer
 	u_int32_t msf_unavailable_timer;
