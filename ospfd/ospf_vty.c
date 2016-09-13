@@ -6613,15 +6613,18 @@ DEFUN (ospf_lisp_msf_locator,
 	// it is the first locator configured
 	// 	create a list first then
 	// 	adding locator to the locator list
-	if ( !ospf->mapping_service_func->locator_list )
+	// if ( !ospf->mapping_service_func->locator_list )
+	if ( list_isempty(ospf->mapping_service_func->locator_list) )
 	{
 		ospf->mapping_service_func->locator_list = list_new();
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
+		vty_out (vty, "Adding first locator into the list %s", VTY_NEWLINE);
 	}
 	// there are already some locators on the list
 	else
 	{
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
+		vty_out (vty, "Adding locator into the list %s", VTY_NEWLINE);
 	}
 
 	return CMD_SUCCESS;
