@@ -7697,10 +7697,12 @@ ospf_config_write (struct vty *vty)
     	  struct in_addr *locator_id;
     	  struct listnode *node,*nnode;
     	  struct in_addr loc;
+    	  //u_char buff[INET_ADDRSTRLEN];
 
     	  for (ALL_LIST_ELEMENTS (ospf->mapping_service_func->locator_list, node, nnode, locator_id))
     	  {
     		  memcpy(&loc,locator_id, sizeof(loc));
+    		  //inet_ntop(AF_INET,locator_id,buff,INET_ADDRSTRLEN);
     		  vty_out (vty, " msf locator-id %s%s",inet_ntoa(loc), VTY_NEWLINE);
     	  }
     	  // have not tested yet
