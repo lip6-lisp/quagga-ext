@@ -758,7 +758,7 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   stream_putw_at (s, putp, cnt);
 
   int length = stream_get_endp (s);
-  zlog_debug ("ospf_router_lsa_body_set: before adding length = %d");
+  zlog_debug ("ospf_router_lsa_body_set: before adding length = %d",length);
   /* @nguyenh: adding the mapping service function related attribute after setting all link information  */
   // adding type-length-value attribute fields to the stream
   // then we need also to check for the length of the extended message --> the length is automatically update,
@@ -790,6 +790,7 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 
   if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
   {
+	  int i;
 	  // type
 	  stream_putc(s,ROUTER_LSA_MSFD_TYPE);
 	  // length - in octets
@@ -844,7 +845,7 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   }
 
   length = stream_get_endp (s);
-  zlog_debug ("ospf_router_lsa_body_set: after adding length = %d");
+  zlog_debug ("ospf_router_lsa_body_set: after adding length = %d",length);
 
 }
 
