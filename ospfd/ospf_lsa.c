@@ -770,20 +770,14 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
   {
 	  zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func->msf_type);
-	  struct in_addr *locator_id;
-	  struct listnode *node,*nnode;
-	  int i = 0;
-
+	  int i;
 	  u_char buff[INET_ADDRSTRLEN];
 
-	  for (ALL_LIST_ELEMENTS (ospf->mapping_service_func->locator_list, node, nnode, locator_id))
+	  for (i=0;i<ospf->mapping_service_func->nloc;i++)
 	  {
 		  inet_ntop(AF_INET,&ospf->mapping_service_func->locator_id[i],buff,INET_ADDRSTRLEN);
-		  //inet_ntop(AF_INET,locator_id,buff,INET_ADDRSTRLEN);
 		  zlog_debug (" msf locator-id %s",buff);
-		  i++;
 	  }
-
   }
   else
 	  zlog_debug ("ospf_router_lsa_body_set: lisp msf support is not enabled ");

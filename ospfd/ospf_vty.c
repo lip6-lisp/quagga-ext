@@ -6582,6 +6582,9 @@ DEFUN (ospf_lisp_msf,
 
 	ospf->mapping_service_func->msf_type = type;
 
+	// initialize the number of locator
+	ospf->mapping_service_func->nloc = 0;
+
 	return CMD_SUCCESS;
 }
 
@@ -6601,53 +6604,41 @@ DEFUN (ospf_lisp_msf_locator,
 	}
 	ret = inet_aton (argv[0], &locator_id);
 
-
-
 	if (!ret)
 	{
 		vty_out (vty, "Please specify Locator ID by A.B.C.D%s", VTY_NEWLINE);
 		return CMD_WARNING;
 	}
 
-	// just for testing
-	/*
-	if (ret)
+	// zlog_debug (" msf locator %s",inet_ntoa(locator_id));
+
+	if (!ospf->mapping_service_func->nloc) // first locator added
 	{
-		vty_out (vty, "MSF Locator ID %s%s", inet_ntoa(locator_id),VTY_NEWLINE);
-		return CMD_WARNING;
+		memcpy( &ospf->mapping_service_func->locator_id[0], &locator_id, sizeof(locator_id) );
+		ospf->mapping_service_func->nloc++;
 	}
-	*/
-
-	zlog_debug (" msf locator %s",inet_ntoa(locator_id));
-
-	// adding locator id in to list of locators
-	// if ( ospf->mapping_service_func->locator_list == NULL )
-
-	// it is the first locator configured
-	// 	create a list first then
-	// 	adding locator to the locator list
-	if ( !ospf->mapping_service_func->locator_list )
+	else
 	{
-		ospf->mapping_service_func->nloc = 0;
-
-		ospf->mapping_service_func->locator_list = list_new();
-		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
-
 		memcpy( &ospf->mapping_service_func->locator_id[ospf->mapping_service_func->nloc], &locator_id, sizeof(locator_id) );
 		ospf->mapping_service_func->nloc++;
+	}
+	// adding locator id in to list of locators
 
+	// it is the first locator configured, create a list first then
+	// adding locator to the locator list
+	/*
+	if ( !ospf->mapping_service_func->locator_list )
+	{
+		ospf->mapping_service_func->locator_list = list_new();
+		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
 		zlog_debug ("Adding first locator into the list");
 	}
-	// there are already some locators on the list
-	else
+	else // there are already some locators on the list
 	{
 		listnode_add(ospf->mapping_service_func->locator_list,&locator_id);
 		zlog_debug ("Adding locator into the list");
-
-		memcpy( &ospf->mapping_service_func->locator_id[ospf->mapping_service_func->nloc], &locator_id, sizeof(locator_id) );
-		ospf->mapping_service_func->nloc++;
 	}
-
+	 */
 	return CMD_SUCCESS;
 }
 
@@ -7717,19 +7708,14 @@ ospf_config_write (struct vty *vty)
     	  vty_out (vty, " lisp msf type %d%s", ospf->mapping_service_func->msf_type, VTY_NEWLINE);
 
     	  // handle the list of mapping locator
-    	  // loop through all elements in the list and add
-    	  struct in_addr *locator_id;
-    	  struct listnode *node,*nnode;
-    	  struct in_addr loc;
-    	  //u_char buff[INET_ADDRSTRLEN];
+    	  int i;
+    	  u_char buff[INET_ADDRSTRLEN];
 
-    	  for (ALL_LIST_ELEMENTS (ospf->mapping_service_func->locator_list, node, nnode, locator_id))
-    	  {
-    		  memcpy(&loc,locator_id, sizeof(loc));
-    		  //inet_ntop(AF_INET,locator_id,buff,INET_ADDRSTRLEN);
-    		  vty_out (vty, " msf locator-id %s%s",inet_ntoa(loc), VTY_NEWLINE);
-    	  }
-    	  // have not tested yet
+		  for (i=0;i<ospf->mapping_service_func->nloc;i++)
+		  {
+			  inet_ntop(AF_INET,&ospf->mapping_service_func->locator_id[i],buff,INET_ADDRSTRLEN);
+			  vty_out (vty, " msf locator-id %s%s",buff, VTY_NEWLINE);
+		  }
 
     	  // five optional attributes
     	  if ( ospf->mapping_service_func->msf_unavailable_timer )
