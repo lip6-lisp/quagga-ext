@@ -7686,6 +7686,72 @@ ospf_config_write (struct vty *vty)
 		 ospf->spf_delay, ospf->spf_holdtime,
 		 ospf->spf_max_holdtime, VTY_NEWLINE);
       
+      /* @nguyenh LISP mapping service function print */
+      if (ospf->lisp_enable == OSPF_LISP_MSF_ENABLE)
+      {
+    	  // two compulsory attributes
+    	  vty_out (vty, " lisp msf type %d%s", ospf->mapping_service_func->msf_type, VTY_NEWLINE);
+
+    	  // handle the list of mapping locator
+    	  // loop through all elements in the list and add
+    	  struct in_addr *locator_id;
+    	  struct listnode *node,*nnode;
+
+    	  for (ALL_LIST_ELEMENTS (ospf->mapping_service_func->locator_list, node, nnode, locator_id))
+    		  vty_out (vty, " msf locator-id %s%s",inet_ntoa(locator_id), VTY_NEWLINE);
+    	  // have not tested yet
+
+    	  // five optional attributes
+    	  if ( ospf->mapping_service_func->msf_unavailable_timer )
+    		  vty_out (vty, " msf timer unavailable %d%s", ospf->mapping_service_func->msf_unavailable_timer, VTY_NEWLINE);
+
+    	  if ( ospf->mapping_service_func->msf_reboot_timer )
+    	      vty_out (vty, " msf timer reboot %d%s", ospf->mapping_service_func->msf_reboot_timer, VTY_NEWLINE);
+
+
+    	  switch (ospf->mapping_service_func->msf_diagnosis_status)
+    	  {
+			  case LISP_MSF_DIAGNOSIS_OFF:
+				vty_out (vty, " msf diagnosis off %s", VTY_NEWLINE);
+				break;
+			  case LISP_MSF_DIAGNOSIS_ON:
+				vty_out (vty, " msf diagnosis on %s", VTY_NEWLINE);
+				break;
+			  default:
+				vty_out (vty, " ");
+    	  }
+
+    	  switch (ospf->mapping_service_func->msf_mapping_db_status)
+		  {
+			  case LISP_MSF_MAPPING_DB_EMPTY:
+				vty_out (vty, " msf database empty %s", VTY_NEWLINE);
+				break;
+			  case LISP_MSF_MAPPING_DB_NOT_SYN:
+				vty_out (vty, " msf database notsync %s", VTY_NEWLINE);
+				break;
+			  case LISP_MSF_MAPPING_DB_SYN:
+				vty_out (vty, " msf database sync %s", VTY_NEWLINE);
+				break;
+			  default:
+				vty_out (vty, " ");
+		  }
+
+    	  switch (ospf->mapping_service_func->msf_mapping_service)
+		  {
+			  case LISP_MSF_MAPPING_SERVICE_DISABLE:
+				vty_out (vty, " msf service off %s", VTY_NEWLINE);
+				break;
+			  case LISP_MSF_MAPPING_SERVICE_ENABLE:
+				vty_out (vty, " msf service on %s", VTY_NEWLINE);
+				break;
+			  default:
+				vty_out (vty, " ");
+		  }
+
+      }
+
+      /* nguyenh */
+
       /* Max-metric router-lsa print */
       config_write_stub_router (vty, ospf);
       
