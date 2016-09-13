@@ -756,6 +756,19 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 
   /* Set # of links here. */
   stream_putw_at (s, putp, cnt);
+
+  /* @nguyenh: adding the mapping service function related attribute after setting all link information  */
+  // adding type-length-value attribute fields to the stream
+  // then we need also to check for the length of the extended message --> the length is automatically update,
+  // 	depending on the latest position of s, so we dont need to do manual update here
+
+  // how we can get the value of MSF ?
+  // struct ospf *ospf = area->ospf; then we can get it from the ospf struct ?
+  // we can refer to them by ospf->mapping_service_func
+  // then putting them in to stream s
+  struct ospf *ospf = area->ospf;
+  zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func.msf_type);
+
 }
 
 static int

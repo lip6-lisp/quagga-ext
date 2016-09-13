@@ -1572,101 +1572,105 @@ ospf_ls_upd_list_lsa (struct ospf_neighbor *nbr, struct stream *s,
   for (; size >= OSPF_LSA_HEADER_SIZE && count > 0;
        size -= length, stream_forward_getp (s, length), count--)
     {
-      lsah = (struct lsa_header *) STREAM_PNT (s);
-      length = ntohs (lsah->length);
+		  lsah = (struct lsa_header *) STREAM_PNT (s);
+		  length = ntohs (lsah->length);
 
-      if (length > size)
-	{
-	  zlog_warn ("Link State Update: LSA length exceeds packet size.");
-	  break;
-	}
+		  if (length > size)
+		  {
+			  zlog_warn ("Link State Update: LSA length exceeds packet size.");
+			  break;
+		  }
 
-      /* Validate the LSA's LS checksum. */
-      sum = lsah->checksum;
-      if (! ospf_lsa_checksum_valid (lsah))
-	{
-	  /* (bug #685) more details in a one-line message make it possible
-	   * to identify problem source on the one hand and to have a better
-	   * chance to compress repeated messages in syslog on the other */
-	  zlog_warn ("Link State Update: LSA checksum error %x/%x, ID=%s from: nbr %s, router ID %s, adv router %s",
-		     sum, lsah->checksum, inet_ntoa (lsah->id),
-		     inet_ntoa (nbr->src), inet_ntoa (nbr->router_id),
-		     inet_ntoa (lsah->adv_router));
-	  continue;
-	}
+		  /* Validate the LSA's LS checksum. */
+		  sum = lsah->checksum;
+		  if (! ospf_lsa_checksum_valid (lsah))
+		  {
+			  /* (bug #685) more details in a one-line message make it possible
+			   * to identify problem source on the one hand and to have a better
+			   * chance to compress repeated messages in syslog on the other */
+			  zlog_warn ("Link State Update: LSA checksum error %x/%x, ID=%s from: nbr %s, router ID %s, adv router %s",
+					 sum, lsah->checksum, inet_ntoa (lsah->id),
+					 inet_ntoa (nbr->src), inet_ntoa (nbr->router_id),
+					 inet_ntoa (lsah->adv_router));
+			  continue;
+		  }
 
-      /* Examine the LSA's LS type. */
-      if (lsah->type < OSPF_MIN_LSA || lsah->type >= OSPF_MAX_LSA)
-	{
-	  zlog_warn ("Link State Update: Unknown LS type %d", lsah->type);
-	  continue;
-	}
+		  /* Examine the LSA's LS type. */
+		  if (lsah->type < OSPF_MIN_LSA || lsah->type >= OSPF_MAX_LSA)
+		  {
+			  zlog_warn ("Link State Update: Unknown LS type %d", lsah->type);
+			  continue;
+		  }
 
-      /*
-       * What if the received LSA's age is greater than MaxAge?
-       * Treat it as a MaxAge case -- endo.
-       */
-      if (ntohs (lsah->ls_age) > OSPF_LSA_MAXAGE)
-        lsah->ls_age = htons (OSPF_LSA_MAXAGE);
+		  /*
+		   * What if the received LSA's age is greater than MaxAge?
+		   * Treat it as a MaxAge case -- endo.
+		   */
+		  if (ntohs (lsah->ls_age) > OSPF_LSA_MAXAGE)
+			lsah->ls_age = htons (OSPF_LSA_MAXAGE);
 
-      if (CHECK_FLAG (nbr->options, OSPF_OPTION_O))
-        {
-#ifdef STRICT_OBIT_USAGE_CHECK
-	  if ((IS_OPAQUE_LSA(lsah->type) &&
-               ! CHECK_FLAG (lsah->options, OSPF_OPTION_O))
-	  ||  (! IS_OPAQUE_LSA(lsah->type) &&
-               CHECK_FLAG (lsah->options, OSPF_OPTION_O)))
-            {
-              /*
-               * This neighbor must know the exact usage of O-bit;
-               * the bit will be set in Type-9,10,11 LSAs only.
-               */
-              zlog_warn ("LSA[Type%d:%s]: O-bit abuse?", lsah->type, inet_ntoa (lsah->id));
-              continue;
-            }
-#endif /* STRICT_OBIT_USAGE_CHECK */
+		  if (CHECK_FLAG (nbr->options, OSPF_OPTION_O))
+		  {
+			#ifdef STRICT_OBIT_USAGE_CHECK
+				  if ((IS_OPAQUE_LSA(lsah->type) &&
+						   ! CHECK_FLAG (lsah->options, OSPF_OPTION_O))
+				  ||  (! IS_OPAQUE_LSA(lsah->type) &&
+						   CHECK_FLAG (lsah->options, OSPF_OPTION_O)))
+				{
+				  /*
+				   * This neighbor must know the exact usage of O-bit;
+				   * the bit will be set in Type-9,10,11 LSAs only.
+				   */
+				  zlog_warn ("LSA[Type%d:%s]: O-bit abuse?", lsah->type, inet_ntoa (lsah->id));
+				  continue;
+				}
+			#endif /* STRICT_OBIT_USAGE_CHECK */
 
-          /* Do not take in AS External Opaque-LSAs if we are a stub. */
-          if (lsah->type == OSPF_OPAQUE_AS_LSA
-	      && nbr->oi->area->external_routing != OSPF_AREA_DEFAULT) 
-            {
-              if (IS_DEBUG_OSPF_EVENT)
-                zlog_debug ("LSA[Type%d:%s]: We are a stub, don't take this LSA.", lsah->type, inet_ntoa (lsah->id));
-              continue;
-            }
-        }
-      else if (IS_OPAQUE_LSA(lsah->type))
-        {
-          zlog_warn ("LSA[Type%d:%s]: Opaque capability mismatch?", lsah->type, inet_ntoa (lsah->id));
-          continue;
-        }
+			  /* Do not take in AS External Opaque-LSAs if we are a stub. */
+			  if (lsah->type == OSPF_OPAQUE_AS_LSA
+			  && nbr->oi->area->external_routing != OSPF_AREA_DEFAULT)
+				{
+				  	  if (IS_DEBUG_OSPF_EVENT)
+				  		  zlog_debug ("LSA[Type%d:%s]: We are a stub, don't take this LSA.", lsah->type, inet_ntoa (lsah->id));
+				  	  continue;
+				}
+		  }
+		  else if (IS_OPAQUE_LSA(lsah->type))
+		  {
+			  zlog_warn ("LSA[Type%d:%s]: Opaque capability mismatch?", lsah->type, inet_ntoa (lsah->id));
+			  continue;
+		  }
 
-      /* Create OSPF LSA instance. */
-      lsa = ospf_lsa_new ();
+		  /* Create OSPF LSA instance. */
+		  lsa = ospf_lsa_new ();
 
-      /* We may wish to put some error checking if type NSSA comes in
-         and area not in NSSA mode */
-      switch (lsah->type)
-        {
-        case OSPF_AS_EXTERNAL_LSA:
-        case OSPF_OPAQUE_AS_LSA:
-          lsa->area = NULL;
-          break;
-        case OSPF_OPAQUE_LINK_LSA:
-          lsa->oi = oi; /* Remember incoming interface for flooding control. */
-          /* Fallthrough */
-        default:
-          lsa->area = oi->area;
-          break;
-        }
+		  /* We may wish to put some error checking if type NSSA comes in
+			 and area not in NSSA mode */
+		  switch (lsah->type)
+			{
+			case OSPF_AS_EXTERNAL_LSA:
+			case OSPF_OPAQUE_AS_LSA:
+			  lsa->area = NULL;
+			  break;
+			case OSPF_OPAQUE_LINK_LSA:
+			  lsa->oi = oi; /* Remember incoming interface for flooding control. */
+			  /* Fallthrough */
+			default:
+			  lsa->area = oi->area;
+			  break;
+			}
 
-      lsa->data = ospf_lsa_data_new (length);
-      memcpy (lsa->data, lsah, length);
+		  lsa->data = ospf_lsa_data_new (length);
+		  memcpy (lsa->data, lsah, length);
 
-      if (IS_DEBUG_OSPF_EVENT)
-	zlog_debug("LSA[Type%d:%s]: %p new LSA created with Link State Update",
-		  lsa->data->type, inet_ntoa (lsa->data->id), (void *)lsa);
-      listnode_add (lsas, lsa);
+		  /* @nguyenh - testing router lsa receiving process */
+		  zlog_debug ("receiving 1 router-lsa - create and added to the lsa list lsas");
+
+		  if (IS_DEBUG_OSPF_EVENT)
+			  zlog_debug("LSA[Type%d:%s]: %p new LSA created with Link State Update",
+			  lsa->data->type, inet_ntoa (lsa->data->id), (void *)lsa);
+
+		  listnode_add (lsas, lsa);
     }
 
   return lsas;
