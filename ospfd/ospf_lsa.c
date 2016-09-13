@@ -757,6 +757,8 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   /* Set # of links here. */
   stream_putw_at (s, putp, cnt);
 
+  int length = stream_get_endp (s);
+  zlog_debug ("ospf_router_lsa_body_set: before adding length = %d");
   /* @nguyenh: adding the mapping service function related attribute after setting all link information  */
   // adding type-length-value attribute fields to the stream
   // then we need also to check for the length of the extended message --> the length is automatically update,
@@ -781,6 +783,68 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   }
   else
 	  zlog_debug ("ospf_router_lsa_body_set: lisp msf support is not enabled ");
+
+  // Type-length-value
+  // need to define different msfd attribute type in ospf_lsa.h
+  // ROUTER_LSA_MSFD_TYPE  ROUTER_LSA_MSFD_TYPE_LOCATOR
+
+  if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
+  {
+	  // type
+	  stream_putc(s,ROUTER_LSA_MSFD_TYPE);
+	  // length - in octets
+	  stream_putc(s,1);
+	  // value - with length = 1
+	  stream_putc(s,ospf->mapping_service_func->msf_type);
+
+	  // type
+	  stream_putc(s,ROUTER_LSA_MSFD_LOCATOR_ID);
+	  // length - in octets
+	  stream_putc(s,ospf->mapping_service_func->nloc * 4);
+	  // value
+	  for (i=0;i<ospf->mapping_service_func->nloc;i++)
+	  {
+		  stream_put_in_addr(s,&ospf->mapping_service_func->locator_id[i]);
+	  }
+
+	  // timers
+	  if (ospf->mapping_service_func->msf_unavailable_timer)
+	  {
+		  stream_putc(s,ROUTER_LSA_MSFD_UN_TIMER);
+		  stream_putc(s,4);
+		  stream_putl(s,ospf->mapping_service_func->msf_unavailable_timer);
+	  }
+	  if (ospf->mapping_service_func->msf_reboot_timer)
+	  {
+		  stream_putc(s,ROUTER_LSA_MSFD_RE_TIMER);
+		  stream_putc(s,4);
+		  stream_putl(s,ospf->mapping_service_func->msf_reboot_timer);
+	  }
+
+	  // status bits
+	  if (ospf->mapping_service_func->msf_diagnosis_status)
+	  {
+		  stream_putc(s,ROUTER_LSA_MSFD_DIAGNOSIS);
+		  stream_putc(s,1);
+		  stream_putc(s,ospf->mapping_service_func->msf_diagnosis_status);
+	  }
+	  if (ospf->mapping_service_func->msf_mapping_db_status)
+	  {
+		  stream_putc(s,ROUTER_LSA_MSFD_DB_STATUS);
+		  stream_putc(s,1);
+		  stream_putc(s,ospf->mapping_service_func->msf_mapping_db_status);
+	  }
+	  if (ospf->mapping_service_func->msf_mapping_service)
+	  {
+		  stream_putc(s,ROUTER_LSA_MSFD_MFS_STATUS);
+		  stream_putc(s,1);
+		  stream_putc(s,ospf->mapping_service_func->msf_mapping_service);
+	  }
+
+  }
+
+  length = stream_get_endp (s);
+  zlog_debug ("ospf_router_lsa_body_set: after adding length = %d");
 
 }
 
@@ -872,6 +936,9 @@ ospf_router_lsa_new (struct ospf_area *area)
   length = stream_get_endp (s);
   lsah = (struct lsa_header *) STREAM_DATA (s);
   lsah->length = htons (length);
+
+  /* @nguyenh : testing purpose */
+  zlog_debug("stream length =  %d ",length);
 
   /* Now, create OSPF LSA instance. */
   if ( (new = ospf_lsa_new ()) == NULL)

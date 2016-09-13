@@ -312,19 +312,19 @@ struct lisp_msf
 
 	// status
 	u_int8_t msf_diagnosis_status;
-#define LISP_MSF_DIAGNOSIS_OFF		0
-#define LISP_MSF_DIAGNOSIS_ON		1
+#define LISP_MSF_DIAGNOSIS_OFF		1
+#define LISP_MSF_DIAGNOSIS_ON		2
 
 	// status of mapping DB
 	u_int8_t msf_mapping_db_status;
-#define LISP_MSF_MAPPING_DB_EMPTY	0
-#define LISP_MSF_MAPPING_DB_NOT_SYN	1
-#define LISP_MSF_MAPPING_DB_SYN		2
+#define LISP_MSF_MAPPING_DB_EMPTY	1
+#define LISP_MSF_MAPPING_DB_NOT_SYN	2
+#define LISP_MSF_MAPPING_DB_SYN		3
 
 	// status of mapping service instance
 	u_int8_t msf_mapping_service;
-#define LISP_MSF_MAPPING_SERVICE_DISABLE	0
-#define LISP_MSF_MAPPING_SERVICE_ENABLE		1
+#define LISP_MSF_MAPPING_SERVICE_DISABLE	1
+#define LISP_MSF_MAPPING_SERVICE_ENABLE		2
 
 };
 /* nguyenh */

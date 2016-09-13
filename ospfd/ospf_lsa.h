@@ -52,6 +52,17 @@
 #define LSA_REFRESH_IF_CHANGED	0
 #define LSA_REFRESH_FORCE	1
 
+/* @nguyenh extended router-LSA attributes for MSFD support */
+#define ROUTER_LSA_MSFD_TYPE 		0
+#define ROUTER_LSA_MSFD_LOCATOR_ID	1
+
+#define ROUTER_LSA_MSFD_UN_TIMER 	2
+#define ROUTER_LSA_MSFD_RE_TIMER	3
+#define ROUTER_LSA_MSFD_DIAGNOSIS 	4
+#define ROUTER_LSA_MSFD_DB_STATUS	5
+#define ROUTER_LSA_MSFD_MFS_STATUS 	6
+/* nguyenh */
+
 /* OSPF LSA header. */
 struct lsa_header
 {
