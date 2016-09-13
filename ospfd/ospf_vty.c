@@ -6601,7 +6601,7 @@ DEFUN (ospf_lisp_msf_locator,
 	}
 	ret = inet_aton (argv[0], &locator_id);
 
-	zlog_debug (" msf locator-id %s",inet_ntoa(locator_id));
+	// zlog_debug (" msf locator-id %s",inet_ntoa(locator_id));
 
 	if (!ret)
 	{
