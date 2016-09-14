@@ -2777,6 +2777,10 @@ ospf_read (struct thread *thread)
   ospfh = (struct ospf_header *) STREAM_PNT (ibuf);
   if (MSG_OK != ospf_packet_examin (ospfh, stream_get_endp (ibuf) - stream_get_getp (ibuf)))
     return -1;
+  /* nguyenh */
+  else
+	  zlog_debug(" [][][] wrong message format   ");
+
   /* Now it is safe to access all fields of OSPF packet header. */
 
   /* associate packet with ospf interface */
