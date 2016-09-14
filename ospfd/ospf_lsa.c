@@ -1020,6 +1020,10 @@ ospf_router_lsa_refresh (struct ospf_lsa *lsa)
   struct ospf_area *area = lsa->area;
   struct ospf_lsa *new;
 
+
+  /* @nguyenh */
+   zlog_debug ("[][] ospf_router_lsa_refresh ");
+
   /* Sanity check. */
   assert (lsa->data);
 
