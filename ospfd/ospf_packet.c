@@ -3614,6 +3614,9 @@ ospf_ls_upd_send_lsa (struct ospf_neighbor *nbr, struct ospf_lsa *lsa,
 
   update = list_new ();
 
+  /* @nguyenh */
+  zlog_debug("ospf_ls_upd_send_lsa () ---> ");
+
   listnode_add (update, lsa);
   ospf_ls_upd_send (nbr, update, flag);
 
