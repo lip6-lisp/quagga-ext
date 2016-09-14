@@ -1728,7 +1728,7 @@ ospf_ls_upd (struct ospf *ospf, struct ip *iph, struct ospf_header *ospfh,
     }
 
   /* @nguyenh */
-  zlog_debug(" [][][][] A link state update message received ")
+  zlog_debug(" [][][][] A link state update message received ");
 
   /* Get list of LSAs from Link State Update packet. - Also perorms Stages 
    * 1 (validate LSA checksum) and 2 (check for LSA consistent type) 
@@ -2655,7 +2655,7 @@ ospf_packet_examin (struct ospf_header * oh, const unsigned bytesonwire)
     /* RFC2328 A.3.5, packet header + OSPF_LS_UPD_MIN_SIZE bytes followed
        by N>=0 full LSAs (with N declared beforehand). */
 	/* @nguyenh */
-	zlog_debug(" [][][] ospf_packet_examin  ")
+	zlog_debug(" [][][] ospf_packet_examin  ");
 
     lsupd = (struct ospf_ls_update *) ((caddr_t) oh + OSPF_HEADER_SIZE);
     ret = ospf_lsaseq_examin
@@ -2772,7 +2772,7 @@ ospf_read (struct thread *thread)
   stream_forward_getp (ibuf, iph->ip_hl * 4);
 
   /* @nguyenh */
-  zlog_debug(" [][][] New message received  ")
+  zlog_debug(" [][][] New message received  ");
 
   ospfh = (struct ospf_header *) STREAM_PNT (ibuf);
   if (MSG_OK != ospf_packet_examin (ospfh, stream_get_endp (ibuf) - stream_get_getp (ibuf)))
