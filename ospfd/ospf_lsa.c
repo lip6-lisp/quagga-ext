@@ -975,6 +975,9 @@ ospf_router_lsa_originate (struct ospf_area *area)
   /* Sanity check. */
   if (new->data->adv_router.s_addr == 0)
     {
+	  /* @nguyenh */
+	  zlog_debug ("LSA[Type1]: AdvRouter is 0, discard");
+
       if (IS_DEBUG_OSPF_EVENT)
 	zlog_debug ("LSA[Type1]: AdvRouter is 0, discard");
       ospf_lsa_discard (new);
@@ -983,11 +986,21 @@ ospf_router_lsa_originate (struct ospf_area *area)
 
   /* Install LSA to LSDB. */
   new = ospf_lsa_install (area->ospf, NULL, new);
+  /* @nguyenh */
+  zlog_debug ("[][] ospf_router_lsa_originate: install LSA to LSDB ");
+
 
   /* Update LSA origination count. */
   area->ospf->lsa_originate_count++;
 
   /* Flooding new LSA through area. */
+
+  /* @nguyenh */
+  zlog_debug ("[][] ospf_router_lsa_originate: prepare to flood through area ");
+  zlog_debug ("LSA[Type%d:%s]: Originate router-LSA %p",
+	 new->data->type, inet_ntoa (new->data->id), (void *)new);
+  ospf_lsa_header_dump (new->data);
+
   ospf_flood_through_area (area, NULL, new);
 
   if (IS_DEBUG_OSPF (lsa, LSA_GENERATE))

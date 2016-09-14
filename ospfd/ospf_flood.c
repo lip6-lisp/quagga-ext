@@ -336,7 +336,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
   struct route_node *rn;
   int retx_flag;
 
-  if (IS_DEBUG_OSPF_EVENT)
+  //if (IS_DEBUG_OSPF_EVENT)
     zlog_debug ("ospf_flood_through_interface(): "
 	       "considering int %s, INBR(%s), LSA[%s]",
 	       IF_NAME (oi), inbr ? inet_ntoa (inbr->router_id) : "NULL",
@@ -359,7 +359,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
 	continue;
 
       onbr = rn->info;
-      if (IS_DEBUG_OSPF_EVENT)
+   //   if (IS_DEBUG_OSPF_EVENT)
 	zlog_debug ("ospf_flood_through_interface(): considering nbr %s (%s)",
 		   inet_ntoa (onbr->router_id),
                    LOOKUP (ospf_nsm_state_msg, onbr->state));
@@ -378,7 +378,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
 	 already.  Compare the new LSA to the neighbor's copy: */
       if (onbr->state < NSM_Full)
 	{
-	  if (IS_DEBUG_OSPF_EVENT)
+	//  if (IS_DEBUG_OSPF_EVENT)
 	    zlog_debug ("ospf_flood_through_interface(): nbr adj is not Full");
 	  ls_req = ospf_ls_request_lookup (onbr, lsa);
 	  if (ls_req != NULL)
@@ -411,7 +411,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
         {
           if (! CHECK_FLAG (onbr->options, OSPF_OPTION_O))
             {
-              if (IS_DEBUG_OSPF (lsa, LSA_FLOODING))
+      //        if (IS_DEBUG_OSPF (lsa, LSA_FLOODING))
                 zlog_debug ("Skip this neighbor: Not Opaque-capable.");
               continue;
             }
@@ -432,7 +432,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
            */
           if (IPV4_ADDR_SAME (&inbr->router_id, &onbr->router_id))
             {
-              if (IS_DEBUG_OSPF (lsa, LSA_FLOODING))
+        //      if (IS_DEBUG_OSPF (lsa, LSA_FLOODING))
                 zlog_debug ("Skip this neighbor: inbr == onbr");
               continue;
             }
@@ -445,7 +445,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
            */
           if (IPV4_ADDR_SAME (&lsa->data->adv_router, &onbr->router_id))
             {
-              if (IS_DEBUG_OSPF (lsa, LSA_FLOODING))
+        //      if (IS_DEBUG_OSPF (lsa, LSA_FLOODING))
                 zlog_debug ("Skip this neighbor: lsah->adv_router == onbr");
               continue;
             }
@@ -478,7 +478,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
 	 received the LSA already. */
       if (NBR_IS_DR (inbr) || NBR_IS_BDR (inbr))
 	{
-	  if (IS_DEBUG_OSPF_NSSA)
+	//  if (IS_DEBUG_OSPF_NSSA)
 	    zlog_debug ("ospf_flood_through_interface(): "
 		       "DR/BDR NOT SEND to int %s", IF_NAME (oi));
 	  return 1;
@@ -492,7 +492,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
 
       if (oi->state == ISM_Backup)
 	{
-	  if (IS_DEBUG_OSPF_NSSA)
+//	  if (IS_DEBUG_OSPF_NSSA)
 	    zlog_debug ("ospf_flood_through_interface(): "
 		       "ISM_Backup NOT SEND to int %s", IF_NAME (oi));
 	  return 1;
@@ -506,7 +506,7 @@ ospf_flood_through_interface (struct ospf_interface *oi,
      State Update packet (until the LS age field reaches the maximum
      value of MaxAge). */
   /* XXX HASSO: Is this IS_DEBUG_OSPF_NSSA really correct? */
-  if (IS_DEBUG_OSPF_NSSA)
+ // if (IS_DEBUG_OSPF_NSSA)
     zlog_debug ("ospf_flood_through_interface(): "
 	       "DR/BDR sending upd to int %s", IF_NAME (oi));
 
