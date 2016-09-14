@@ -2917,18 +2917,28 @@ ospf_read (struct thread *thread)
     {
     case OSPF_MSG_HELLO:
       ospf_hello (iph, ospfh, ibuf, oi, length);
+      /* @nguyenh */
+       zlog_debug(" [][][]  OSPF_MSG_HELLO ");
       break;
     case OSPF_MSG_DB_DESC:
       ospf_db_desc (iph, ospfh, ibuf, oi, length);
+      /* @nguyenh */
+      zlog_debug(" [][][]  OSPF_MSG_DB_DESC ");
       break;
     case OSPF_MSG_LS_REQ:
       ospf_ls_req (iph, ospfh, ibuf, oi, length);
+      /* @nguyenh */
+      zlog_debug(" [][][]  OSPF_MSG_LS_REQ ");
       break;
     case OSPF_MSG_LS_UPD:
       ospf_ls_upd (ospf, iph, ospfh, ibuf, oi, length);
+      /* @nguyenh */
+      zlog_debug(" [][][]  OSPF_MSG_LS_UPD ");
       break;
     case OSPF_MSG_LS_ACK:
       ospf_ls_ack (iph, ospfh, ibuf, oi, length);
+      /* @nguyenh */
+      zlog_debug(" [][][]  OSPF_MSG_LS_ACK ");
       break;
     default:
       zlog (NULL, LOG_WARNING,
