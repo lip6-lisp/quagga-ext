@@ -2548,8 +2548,8 @@ ospf_lsaseq_examin
     if (headeronly)
     {
     	// nguyenh
-    	zlog_debug ("[][][] ospf_lsaseq_examin header only message  ");
-
+    	zlog_debug ("[][][] ospf_lsaseq_examin header only message ");
+    	zlog_debug ("		lsa header length = %d",lsalen);
 
       /* less checks here and in ospf_lsa_examin() */
       if (MSG_OK != ospf_lsa_examin (lsah, lsalen, 1))
@@ -2587,7 +2587,7 @@ ospf_lsaseq_examin
     // the bits after that will be parsed in a different way
     // at that time lsah pointer the header of last lsa
 
-    if ( length && declared_num_lsas && counted_lsas == declared_num_lsas )
+    if ( counted_lsas == declared_num_lsas )
     {
     	msfd_received = 1;
     	last_lsalen = lsalen;
@@ -2605,7 +2605,13 @@ ospf_lsaseq_examin
 
   if ( msfd_received )
   {
-	  u_int8_t *ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + last_lsalen);
+	  u_int8_t *ext_att_type;
+
+	  if (headeronly)
+		  ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + OSPF_LSA_HEADER_SIZE);
+	  else
+		  ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + last_lsalen);
+
 	  u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
 
 	  if (*ext_att_type == ROUTER_LSA_MSFD_TYPE)
