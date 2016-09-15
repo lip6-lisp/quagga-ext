@@ -2506,6 +2506,9 @@ ospf_lsaseq_examin
 {
   u_int32_t counted_lsas = 0;
 
+  /* @nguyenh */
+  u_int8_t msfd_received = 0;
+
   while (length)
   {
     u_int16_t lsalen;
@@ -2556,7 +2559,35 @@ ospf_lsaseq_examin
       lsah = (struct lsa_header *) ((caddr_t) lsah + lsalen);
       length -= lsalen;
     }
+
     counted_lsas++;
+    /* @nguyenh */
+    // here we can processing the extended msfd attributes when the counted_lsas = the declared number of lsas
+    // the bits after that will be parsed in a different way
+    // at that time lsah pointer the header of last lsa
+
+    if ( length && declared_num_lsas && counted_lsas == declared_num_lsas )
+    {
+    	msfd_received = 1;
+    	 zlog_debug ("[][][][][][][][][] that works ");
+    	break;
+    }
+    // we need to move pointer to different position in the buffer and get the first type
+    // first break the current while loop since we are not processing lsa anymore
+    // if (declared_num_lsas && counted_lsas == declared_num_lsas)
+    // u_int8_t *ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + lsalen);
+    // u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
+    // the value will depended on type and len
+    // u_int8_t *ext_att_val 	= (u_int8_t *) ((caddr_t) ext_att_len + 1);
+  }
+
+  if ( msfd_received )
+  {
+	  u_int8_t *ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + lsalen);
+	  u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
+
+	  if (*ext_att_type == ROUTER_LSA_MSFD_TYPE)
+		  zlog_debug ("[][][][][] that works ");
   }
 
   if (declared_num_lsas && counted_lsas != declared_num_lsas)
