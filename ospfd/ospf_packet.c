@@ -2513,6 +2513,10 @@ ospf_lsaseq_examin
   while (length)
   {
     u_int16_t lsalen;
+
+    // nguyenh
+    zlog_debug ("[][][] ospf_lsaseq_examin checking  ");
+
     if (length < OSPF_LSA_HEADER_SIZE)
     {
       if (IS_DEBUG_OSPF_PACKET (0, RECV))
@@ -2527,10 +2531,18 @@ ospf_lsaseq_examin
       if (IS_DEBUG_OSPF_PACKET (0, RECV))
         zlog_debug ("%s: malformed LSA header #%u, declared length is %u B",
                     __func__, counted_lsas, lsalen);
+      // nguyenh
+      zlog_debug ("%s: malformed LSA header #%u, declared length is %u B",
+                          __func__, counted_lsas, lsalen);
+
       return MSG_NG;
     }
     if (headeronly)
     {
+    	// nguyenh
+    	zlog_debug ("[][][] ospf_lsaseq_examin header only message  ");
+
+
       /* less checks here and in ospf_lsa_examin() */
       if (MSG_OK != ospf_lsa_examin (lsah, lsalen, 1))
       {
