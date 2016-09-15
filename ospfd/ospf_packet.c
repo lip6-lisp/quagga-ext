@@ -2427,6 +2427,9 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
 {
   unsigned ret;
   struct router_lsa * rlsa;
+  /* @nguyenh */
+
+  zlog_debug (" [][][][][][]ospf_lsa_examin() %s",headeronly);
   if
   (
     lsah->type < OSPF_MAX_LSA &&
