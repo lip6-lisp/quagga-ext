@@ -2508,6 +2508,7 @@ ospf_lsaseq_examin
 
   /* @nguyenh */
   u_int8_t msfd_received = 0;
+  u_int16_t last_lsalen;
 
   while (length)
   {
@@ -2569,6 +2570,7 @@ ospf_lsaseq_examin
     if ( length && declared_num_lsas && counted_lsas == declared_num_lsas )
     {
     	msfd_received = 1;
+    	last_lsalen = lsalen;
     	 zlog_debug ("[][][][][][][][][] that works ");
     	break;
     }
@@ -2583,7 +2585,7 @@ ospf_lsaseq_examin
 
   if ( msfd_received )
   {
-	  u_int8_t *ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + lsalen);
+	  u_int8_t *ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + last_lsalen);
 	  u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
 
 	  if (*ext_att_type == ROUTER_LSA_MSFD_TYPE)
