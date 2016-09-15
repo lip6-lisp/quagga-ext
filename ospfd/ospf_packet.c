@@ -2397,14 +2397,16 @@ ospf_router_lsa_links_examin
 {
   unsigned counted_links = 0, thislinklen;
 
-  zlog_debug (" [][][][][][]ospf_router_lsa_links_examin()");
+  // nguyenh
+  zlog_debug (" [][][][][][] ospf_router_lsa_links_examin()");
 
   while (linkbytes)
   {
     thislinklen = OSPF_ROUTER_LSA_LINK_SIZE + 4 * link->m[0].tos_count;
     if (thislinklen > linkbytes)
     {
-      if (IS_DEBUG_OSPF_PACKET (0, RECV))
+      // nguyenh
+      //if (IS_DEBUG_OSPF_PACKET (0, RECV))
         zlog_debug ("%s: length error in link block #%u", __func__, counted_links);
       return MSG_NG;
     }
@@ -2412,9 +2414,11 @@ ospf_router_lsa_links_examin
     linkbytes -= thislinklen;
     counted_links++;
   }
+
   if (counted_links != num_links)
   {
-    if (IS_DEBUG_OSPF_PACKET (0, RECV))
+	// nguyenh
+    //if (IS_DEBUG_OSPF_PACKET (0, RECV))
       zlog_debug ("%s: %u link blocks declared, %u present",
                   __func__, num_links, counted_links);
     return MSG_NG;
@@ -2450,18 +2454,25 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
     if (headeronly)
     {
       ret = (lsalen - OSPF_LSA_HEADER_SIZE - OSPF_ROUTER_LSA_MIN_SIZE) % 4 ? MSG_NG : MSG_OK;
-      zlog_debug (" [][][][][][]ospf_lsa_examin() headeronly");
+      // nguyenh
+      zlog_debug (" [][][][][] ospf_lsa_examin() headeronly ");
+      if (ret==MSG_OK)
+    	  zlog_debug (" [][][][][] ospf_lsa_examin() MSG_OK ");
+
       break;
     }
     rlsa = (struct router_lsa *) lsah;
 
-    zlog_debug (" [][][][][][]ospf_lsa_examin() header with links   ");
+    zlog_debug (" [][][][][] ospf_lsa_examin() header with links   ");
     ret = ospf_router_lsa_links_examin
     (
       (struct router_lsa_link *) rlsa->link,
       lsalen - OSPF_LSA_HEADER_SIZE - 4, /* skip: basic header, "flags", 0, "# links" */
       ntohs (rlsa->links) /* 16 bits */
     );
+
+    if (ret==MSG_OK)
+    	zlog_debug (" [][][][][] ospf_lsa_examin() MSG_OK ");
 
     break;
   case OSPF_AS_EXTERNAL_LSA:
@@ -2523,7 +2534,7 @@ ospf_lsaseq_examin
     u_int16_t lsalen;
 
     // nguyenh
-    zlog_debug ("[][][] ospf_lsaseq_examin checking  ");
+    zlog_debug (" [][][][][] ospf_lsaseq_examin checking  ");
 
     if (length < OSPF_LSA_HEADER_SIZE)
     {
@@ -2547,9 +2558,9 @@ ospf_lsaseq_examin
     }
     if (headeronly)
     {
-    	// nguyenh
-    	zlog_debug ("[][][] ospf_lsaseq_examin header only message ");
-    	zlog_debug ("		lsa header length = %d",lsalen);
+
+      // nguyenh
+      zlog_debug (" [][][][][] ospf_lsaseq_examin - header only message ");
 
       /* less checks here and in ospf_lsa_examin() */
       if (MSG_OK != ospf_lsa_examin (lsah, lsalen, 1))
@@ -2560,9 +2571,16 @@ ospf_lsaseq_examin
       }
       lsah = (struct lsa_header *) ((caddr_t) lsah + OSPF_LSA_HEADER_SIZE);
       length -= OSPF_LSA_HEADER_SIZE;
+
+      // nguyenh
+      zlog_debug (" [][][][][] ospf_lsaseq_examin - no error - next lsa ");
     }
     else
     {
+
+      // nguyenh
+      zlog_debug (" [][][][][] ospf_lsaseq_examin - normal message ");
+
       /* make sure the input buffer is deep enough before further checks */
       if (lsalen > length)
       {
@@ -2579,6 +2597,9 @@ ospf_lsaseq_examin
       }
       lsah = (struct lsa_header *) ((caddr_t) lsah + lsalen);
       length -= lsalen;
+
+      // nguyenh
+      zlog_debug (" [][][][][] ospf_lsaseq_examin - no error - next lsa ");
     }
 
     counted_lsas++;
@@ -2714,7 +2735,7 @@ ospf_packet_examin (struct ospf_header * oh, const unsigned bytesonwire)
     /* RFC2328 A.3.5, packet header + OSPF_LS_UPD_MIN_SIZE bytes followed
        by N>=0 full LSAs (with N declared beforehand). */
 	/* @nguyenh */
-	zlog_debug(" [][][] ospf_packet_examin  ");
+	zlog_debug(" [][][][] ospf_packet_examin - OSPF_MSG_LS_UPD ");
 
     lsupd = (struct ospf_ls_update *) ((caddr_t) oh + OSPF_HEADER_SIZE);
     ret = ospf_lsaseq_examin
@@ -2838,7 +2859,7 @@ ospf_read (struct thread *thread)
     return -1;
   /* nguyenh */
   else
-	  zlog_debug(" [][][] wrong message format   ");
+	  zlog_debug(" [][][] Correct message format   ");
 
   /* Now it is safe to access all fields of OSPF packet header. */
 
