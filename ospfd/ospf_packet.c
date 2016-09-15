@@ -2397,6 +2397,8 @@ ospf_router_lsa_links_examin
 {
   unsigned counted_links = 0, thislinklen;
 
+  zlog_debug (" [][][][][][]ospf_router_lsa_links_examin()");
+
   while (linkbytes)
   {
     thislinklen = OSPF_ROUTER_LSA_LINK_SIZE + 4 * link->m[0].tos_count;
@@ -2429,7 +2431,6 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
   struct router_lsa * rlsa;
   /* @nguyenh */
 
-  zlog_debug (" [][][][][][]ospf_lsa_examin() %s",headeronly);
   if
   (
     lsah->type < OSPF_MAX_LSA &&
@@ -2449,15 +2450,19 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
     if (headeronly)
     {
       ret = (lsalen - OSPF_LSA_HEADER_SIZE - OSPF_ROUTER_LSA_MIN_SIZE) % 4 ? MSG_NG : MSG_OK;
+      zlog_debug (" [][][][][][]ospf_lsa_examin() headeronly");
       break;
     }
     rlsa = (struct router_lsa *) lsah;
+
+    zlog_debug (" [][][][][][]ospf_lsa_examin() header with links   ");
     ret = ospf_router_lsa_links_examin
     (
       (struct router_lsa_link *) rlsa->link,
       lsalen - OSPF_LSA_HEADER_SIZE - 4, /* skip: basic header, "flags", 0, "# links" */
       ntohs (rlsa->links) /* 16 bits */
     );
+
     break;
   case OSPF_AS_EXTERNAL_LSA:
     /* RFC2328 A.4.5, LSA header + 4 bytes followed by N>=1 12-bytes long blocks */
