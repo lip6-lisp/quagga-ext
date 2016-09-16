@@ -2464,6 +2464,10 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
     rlsa = (struct router_lsa *) lsah;
 
     zlog_debug (" [][][][][] ospf_lsa_examin() header with links   ");
+    // nguyen h
+    if ( ntohs( rlsa->zero ) )
+    	zlog_debug (" zero bit set to 1");
+
     ret = ospf_router_lsa_links_examin
     (
       (struct router_lsa_link *) rlsa->link,
