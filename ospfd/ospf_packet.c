@@ -2466,11 +2466,11 @@ ospf_router_lsa_links_msf_examin
   zlog_debug (" [][][][][][] remaining %d octets for processing ",linkbytes);
   // now we get the msf bit from the stream
   // first move the pointer to msf type field
-  u_int8_t *msf_type;
-  u_int8_t *n_loc;
-  msf_type = (u_int8_t *)((caddr_t) link + thislinklen);
+  u_char *msf_type;
+  u_char *n_loc;
+  msf_type = (u_char *)((caddr_t) link + thislinklen);
   zlog_debug (" [][][][][][] receive MSF type %d ",*msf_type);
-  n_loc = (u_int8_t *)((caddr_t) msf_type + thislinklen);
+  n_loc = (u_char *)((caddr_t) msf_type + thislinklen);
   zlog_debug (" [][][][][][] with n locator = %d ",*n_loc);
 
   return MSG_OK;
