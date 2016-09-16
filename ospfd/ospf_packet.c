@@ -2405,8 +2405,6 @@ ospf_router_lsa_links_examin
     thislinklen = OSPF_ROUTER_LSA_LINK_SIZE + 4 * link->m[0].tos_count;
     if (thislinklen > linkbytes)
     {
-      // nguyenh
-      //if (IS_DEBUG_OSPF_PACKET (0, RECV))
         zlog_debug ("%s: length error in link block #%u", __func__, counted_links);
       return MSG_NG;
     }
@@ -2417,14 +2415,67 @@ ospf_router_lsa_links_examin
 
   if (counted_links != num_links)
   {
-	// nguyenh
-    //if (IS_DEBUG_OSPF_PACKET (0, RECV))
+    if (IS_DEBUG_OSPF_PACKET (0, RECV))
       zlog_debug ("%s: %u link blocks declared, %u present",
                   __func__, num_links, counted_links);
     return MSG_NG;
   }
   return MSG_OK;
 }
+
+/* @nguyenh :extended ospf_router_lsa_links_examin to get extra msf bits */
+// copy from ospf_router_lsa_links_examin()
+static unsigned
+ospf_router_lsa_links_msf_examin
+(
+  struct router_lsa_link * link,
+  u_int16_t linkbytes,
+  const u_int16_t num_links
+)
+{
+  unsigned counted_links = 0, thislinklen;
+
+  zlog_debug (" [][][][][][] ospf_router_lsa_links_msf_examin()");
+
+  while (linkbytes)
+  {
+    thislinklen = OSPF_ROUTER_LSA_LINK_SIZE + 4 * link->m[0].tos_count;
+
+    //if (thislinklen > linkbytes)
+    //{
+    	//zlog_debug ("%s: length error in link block #%u", __func__, counted_links);
+    	//return MSG_NG;
+    //}
+
+    link = (struct router_lsa_link *)((caddr_t) link + thislinklen);
+    linkbytes -= thislinklen;
+    counted_links++;
+
+    // all the link has been processed, the remainings are extended msf related fields
+    if (counted_links == num_links)
+    	break;
+  }
+
+  if (counted_links != num_links)
+    {
+  	  zlog_debug ("%s: %u link blocks declared, %u present",
+                    __func__, num_links, counted_links);
+  	  return MSG_NG;
+    }
+
+  zlog_debug (" [][][][][][] remaining %d octets for processing ",linkbytes);
+  // now we get the msf bit from the stream
+  // first move the pointer to msf type field
+  u_int8_t *msf_type;
+  u_int8_t *n_loc;
+  msf_type = (u_int8_t *)((caddr_t) link + thislinklen);
+  zlog_debug (" [][][][][][] receive MSF type %d ",*msf_type);
+  n_loc = (u_int8_t *)((caddr_t) msf_type + thislinklen);
+  zlog_debug (" [][][][][][] with n locator = %d ",*n_loc);
+
+  return MSG_OK;
+}
+/* nguyenh */
 
 /* Verify, that the given LSA is properly sized/aligned (including type-specific
    minimum length constraint). */
@@ -2466,14 +2517,24 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
     zlog_debug (" [][][][][] ospf_lsa_examin() header with links   ");
     // nguyen h
     if ( ntohs( rlsa->zero ) )
+    {
     	zlog_debug (" zero bit set to 1");
-
-    ret = ospf_router_lsa_links_examin
-    (
-      (struct router_lsa_link *) rlsa->link,
-      lsalen - OSPF_LSA_HEADER_SIZE - 4, /* skip: basic header, "flags", 0, "# links" */
-      ntohs (rlsa->links) /* 16 bits */
-    );
+    	ret = ospf_router_lsa_links_msf_examin
+		(
+		  (struct router_lsa_link *) rlsa->link,
+		  lsalen - OSPF_LSA_HEADER_SIZE - 4, /* skip: basic header, "flags", 0, "# links" */
+		  ntohs (rlsa->links) /* 16 bits */
+		);
+    }
+    else
+    {
+		ret = ospf_router_lsa_links_examin
+		(
+		  (struct router_lsa_link *) rlsa->link,
+		  lsalen - OSPF_LSA_HEADER_SIZE - 4, /* skip: basic header, "flags", 0, "# links" */
+		  ntohs (rlsa->links) /* 16 bits */
+		);
+    }
 
     if (ret==MSG_OK)
     	zlog_debug (" [][][][][] ospf_lsa_examin() MSG_OK ");
@@ -2528,10 +2589,6 @@ ospf_lsaseq_examin
 )
 {
   u_int32_t counted_lsas = 0;
-
-  /* @nguyenh */
-  u_int8_t msfd_received = 0;
-  u_int16_t last_lsalen;
 
   while (length)
   {
@@ -2609,6 +2666,7 @@ ospf_lsaseq_examin
 
     counted_lsas++;
     /* @nguyenh */
+    /*
     // here we can processing the extended msfd attributes when the counted_lsas = the declared number of lsas
     // the bits after that will be parsed in a different way
     // at that time lsah pointer the header of last lsa
@@ -2627,8 +2685,11 @@ ospf_lsaseq_examin
     // u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
     // the value will depended on type and len
     // u_int8_t *ext_att_val 	= (u_int8_t *) ((caddr_t) ext_att_len + 1);
+     *
+     */
   }
 
+  /*
   if ( msfd_received )
   {
 	  u_int8_t *ext_att_type;
@@ -2643,6 +2704,7 @@ ospf_lsaseq_examin
 	  if (*ext_att_type == ROUTER_LSA_MSFD_TYPE)
 		  zlog_debug ("[][][][][] that works ");
   }
+  */
 
   if (declared_num_lsas && counted_lsas != declared_num_lsas)
   {
