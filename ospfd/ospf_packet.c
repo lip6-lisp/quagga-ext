@@ -2589,6 +2589,7 @@ ospf_lsaseq_examin
                       __func__, counted_lsas, lsalen, length);
         return MSG_NG;
       }
+
       if (MSG_OK != ospf_lsa_examin (lsah, lsalen, 0))
       {
         if (IS_DEBUG_OSPF_PACKET (0, RECV))

@@ -742,6 +742,11 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   /* Set flags. */
   stream_putc (s, router_lsa_flags (area));
 
+  /* @nguyenh */
+  // Keep pointer to Zero field
+  unsigned char zfp;
+  zfp = stream_get_endp(s);
+
   /* Set Zero fields. */
   stream_putc (s, 0);
 
@@ -780,6 +785,9 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 		  inet_ntop(AF_INET,&ospf->mapping_service_func->locator_id[i],buff,INET_ADDRSTRLEN);
 		  zlog_debug (" msf locator-id %s",buff);
 	  }
+
+	  // the Zero field is now set to 1 when the msf bit is piggyback in router LSA
+	  stream_putc_at (s, zfp, 1);
   }
   else
 	  zlog_debug ("ospf_router_lsa_body_set: lisp msf support is not enabled ");
@@ -791,18 +799,20 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
   {
 	  int i;
-	  // type
-	  stream_putc(s,ROUTER_LSA_MSFD_TYPE);
-	  // length - in octets
-	  stream_putc(s,1);
-	  // value - with length = 1
+	  int n_opt_field=0;
+	  // 8 bits MSF type followed by 8-bit number of locator then 16-bit total length of addtional fields
 	  stream_putc(s,ospf->mapping_service_func->msf_type);
+	  stream_putc(s,ospf->mapping_service_func->nloc);
 
-	  // type
-	  stream_putc(s,ROUTER_LSA_MSFD_LOCATOR_ID);
-	  // length - in octets
-	  stream_putc(s,ospf->mapping_service_func->nloc * 4);
-	  // value
+	  // total lenght in octet = nloc*4 + other 5 optional fields (with max = 5 * 4 =20 octects  )
+	  // stream_putw(s, (ospf->mapping_service_func->nloc * 4) + ); update it latter
+	  // so we keep a pointer to that Length Field elength_p
+	  unsigned long elength_p;
+	  elength_p = stream_get_endp(s);
+	  // Forward word
+	  stream_putw(s, 0);
+
+	  // locator id
 	  for (i=0;i<ospf->mapping_service_func->nloc;i++)
 	  {
 		  stream_put_in_addr(s,&ospf->mapping_service_func->locator_id[i]);
@@ -811,37 +821,39 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 	  // timers
 	  if (ospf->mapping_service_func->msf_unavailable_timer)
 	  {
-		  stream_putc(s,ROUTER_LSA_MSFD_UN_TIMER);
-		  stream_putc(s,4);
-		  stream_putl(s,ospf->mapping_service_func->msf_unavailable_timer);
+		  stream_putw(s,ROUTER_LSA_MSFD_UN_TIMER);
+		  stream_putw(s,ospf->mapping_service_func->msf_unavailable_timer);
+		  n_opt_field++;
 	  }
 	  if (ospf->mapping_service_func->msf_reboot_timer)
 	  {
-		  stream_putc(s,ROUTER_LSA_MSFD_RE_TIMER);
-		  stream_putc(s,4);
-		  stream_putl(s,ospf->mapping_service_func->msf_reboot_timer);
+		  stream_putw(s,ROUTER_LSA_MSFD_RE_TIMER);
+		  stream_putw(s,ospf->mapping_service_func->msf_reboot_timer);
+		  n_opt_field++;
 	  }
 
 	  // status bits
 	  if (ospf->mapping_service_func->msf_diagnosis_status)
 	  {
-		  stream_putc(s,ROUTER_LSA_MSFD_DIAGNOSIS);
-		  stream_putc(s,1);
-		  stream_putc(s,ospf->mapping_service_func->msf_diagnosis_status);
+		  stream_putw(s,ROUTER_LSA_MSFD_DIAGNOSIS);
+		  stream_putw(s,ospf->mapping_service_func->msf_diagnosis_status);
+		  n_opt_field++;
 	  }
 	  if (ospf->mapping_service_func->msf_mapping_db_status)
 	  {
-		  stream_putc(s,ROUTER_LSA_MSFD_DB_STATUS);
-		  stream_putc(s,1);
-		  stream_putc(s,ospf->mapping_service_func->msf_mapping_db_status);
+		  stream_putw(s,ROUTER_LSA_MSFD_DB_STATUS);
+		  stream_putw(s,ospf->mapping_service_func->msf_mapping_db_status);
+		  n_opt_field++;
 	  }
 	  if (ospf->mapping_service_func->msf_mapping_service)
 	  {
-		  stream_putc(s,ROUTER_LSA_MSFD_MFS_STATUS);
-		  stream_putc(s,1);
-		  stream_putc(s,ospf->mapping_service_func->msf_mapping_service);
+		  stream_putw(s,ROUTER_LSA_MSFD_MFS_STATUS);
+		  stream_putw(s,ospf->mapping_service_func->msf_mapping_service);
+		  n_opt_field++;
 	  }
 
+	  // update the Length field
+	  stream_putw_at(s, elength_p, (ospf->mapping_service_func->nloc + n_opt_field)*4 );
   }
 
   length = stream_get_endp (s);

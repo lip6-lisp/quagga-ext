@@ -6648,7 +6648,7 @@ DEFUN (ospf_lisp_msf_timer,
        "Set the mapping service function timer \n")
 {
 	struct ospf *ospf = vty->index;
-	u_int32_t t_value;
+	u_int16_t t_value;
 
 	if ( !ospf->lisp_enable )
 	{
