@@ -2474,7 +2474,7 @@ ospf_router_lsa_links_msf_examin
   u_char *n_loc;
   u_int16_t *elength;
 
-  msf_type = (u_char *)((caddr_t) last_link + thislinklen );
+  msf_type = (u_char *)((caddr_t) last_link  );
   zlog_debug (" [][][][][][] receive MSF type %u ",*msf_type);
 
   n_loc = (u_char *)((caddr_t) msf_type + 1); // 1 is the size of msf_type
