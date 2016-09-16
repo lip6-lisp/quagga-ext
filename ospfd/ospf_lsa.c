@@ -776,7 +776,7 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   struct ospf *ospf = area->ospf;
   if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
   {
-	  zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func->msf_type);
+	  // zlog_debug ("ospf_router_lsa_body_set: adding msfd attribute - type = %d", ospf->mapping_service_func->msf_type);
 	  int i;
 	  u_char buff[INET_ADDRSTRLEN];
 
@@ -803,6 +803,8 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 	  // 8 bits MSF type followed by 8-bit number of locator then 16-bit total length of addtional fields
 	   stream_putc(s,(u_char) ospf->mapping_service_func->msf_type);
 	   stream_putc(s,(u_char) ospf->mapping_service_func->nloc);
+	   zlog_debug ("ospf_router_lsa_body_set: msf type = %u nloc = %u ",
+			   (u_char) ospf->mapping_service_func->msf_type,(u_char) ospf->mapping_service_func->nloc );
 	  //stream_putc(s,1);
 	  //stream_putc(s,2);
 

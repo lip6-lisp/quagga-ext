@@ -2474,13 +2474,13 @@ ospf_router_lsa_links_msf_examin
   u_char *n_loc;
   u_int16_t *elength;
 
-  msf_type = (u_char *)((caddr_t) last_link + thislinklen + 1);
+  msf_type = (u_char *)((caddr_t) last_link + thislinklen );
   zlog_debug (" [][][][][][] receive MSF type %u ",*msf_type);
 
-  n_loc = (u_char *)((caddr_t) msf_type + 1);
+  n_loc = (u_char *)((caddr_t) msf_type + 1); // 1 is the size of msf_type
   zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
 
-  elength = (u_int16_t *)((caddr_t) n_loc + 2);
+  elength = (u_int16_t *)((caddr_t) n_loc + 1);
   zlog_debug (" [][][][][][] with extra length = %d ",*elength);
 
   return MSG_OK;
