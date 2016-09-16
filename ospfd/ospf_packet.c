@@ -2434,6 +2434,7 @@ ospf_router_lsa_links_msf_examin
 )
 {
   unsigned counted_links = 0, thislinklen;
+  struct router_lsa_link * last_link;
 
   zlog_debug (" [][][][][][] ospf_router_lsa_links_msf_examin()");
 
@@ -2453,7 +2454,10 @@ ospf_router_lsa_links_msf_examin
 
     // all the link has been processed, the remainings are extended msf related fields
     if (counted_links == num_links)
+    {
+    	last_link = link ;
     	break;
+    }
   }
 
   if (counted_links != num_links)
@@ -2468,11 +2472,16 @@ ospf_router_lsa_links_msf_examin
   // first move the pointer to msf type field
   u_char *msf_type;
   u_char *n_loc;
-  msf_type = (u_char *)((caddr_t) link + thislinklen + 1);
+  u_int16_t *elength;
+
+  msf_type = (u_char *)((caddr_t) last_link + thislinklen + 1);
   zlog_debug (" [][][][][][] receive MSF type %u ",*msf_type);
 
   n_loc = (u_char *)((caddr_t) msf_type + 1);
   zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
+
+  elength = (u_int16_t *)((caddr_t) n_loc + 2);
+  zlog_debug (" [][][][][][] with extra length = %d ",*elength);
 
   return MSG_OK;
 }
