@@ -2481,7 +2481,7 @@ ospf_router_lsa_links_msf_examin
   zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
 
   elength = (u_int16_t *)((caddr_t) n_loc + 1);
-  zlog_debug (" [][][][][][] with extra length = %d ",*elength);
+  zlog_debug (" [][][][][][] with extra length = %d ",ntohs(*elength) );
 
   return MSG_OK;
 }
