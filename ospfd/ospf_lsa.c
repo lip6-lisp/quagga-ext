@@ -801,8 +801,8 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 	  int i;
 	  int n_opt_field=0;
 	  // 8 bits MSF type followed by 8-bit number of locator then 16-bit total length of addtional fields
-	  stream_putc(s,ospf->mapping_service_func->msf_type);
-	  stream_putc(s,ospf->mapping_service_func->nloc);
+	  stream_putc(s,(u_char) ospf->mapping_service_func->msf_type);
+	  stream_putc(s,(u_char) ospf->mapping_service_func->nloc);
 
 	  // total lenght in octet = nloc*4 + other 5 optional fields (with max = 5 * 4 =20 octects  )
 	  // stream_putw(s, (ospf->mapping_service_func->nloc * 4) + ); update it latter
