@@ -2496,7 +2496,7 @@ ospf_router_lsa_links_msf_examin
   zlog_debug (" [][][][][][] msf locator-id %s",buff );
 
   int i;
-  for (i=1;i<n_loc;i++) // skip the first locator
+  for (i=1;i<(u_int8_t)(*n_loc);i++) // skip the first locator
   {
 	  loc_id =  (u_int16_t *)((caddr_t) loc_id + 4);
 	  inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
