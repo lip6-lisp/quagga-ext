@@ -2468,9 +2468,10 @@ ospf_router_lsa_links_msf_examin
   // first move the pointer to msf type field
   u_char *msf_type;
   u_char *n_loc;
-  msf_type = (u_char *)((caddr_t) link + thislinklen);
+  msf_type = (u_char *)((caddr_t) link + thislinklen + 1);
   zlog_debug (" [][][][][][] receive MSF type %u ",*msf_type);
-  n_loc = (u_char *)((caddr_t) msf_type + thislinklen);
+
+  n_loc = (u_char *)((caddr_t) msf_type + 1);
   zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
 
   return MSG_OK;
