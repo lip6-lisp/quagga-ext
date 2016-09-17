@@ -2442,17 +2442,18 @@ ospf_router_lsa_links_msf_examin
   {
     thislinklen = OSPF_ROUTER_LSA_LINK_SIZE + 4 * link->m[0].tos_count;
 
-    //if (thislinklen > linkbytes)
-    //{
-    	//zlog_debug ("%s: length error in link block #%u", __func__, counted_links);
-    	//return MSG_NG;
-    //}
-
+    /* skip
+    if (thislinklen > linkbytes)
+    {
+    	zlog_debug ("%s: length error in link block #%u", __func__, counted_links);
+    	return MSG_NG;
+    }
+	*/
     link = (struct router_lsa_link *)((caddr_t) link + thislinklen);
     linkbytes -= thislinklen;
     counted_links++;
 
-    // all the link has been processed, the remainings are extended msf related fields
+    // all the links have been processed, the remainings are extended msf related fields
     if (counted_links == num_links)
     {
     	last_link = link ;
@@ -2468,43 +2469,81 @@ ospf_router_lsa_links_msf_examin
     }
 
   zlog_debug (" [][][][][][] remaining %d octets for processing ",linkbytes);
-  // now we get the msf bit from the stream
-  // first move the pointer to msf type field
-  u_char *msf_type;
-  u_char *n_loc;
-  u_int16_t *elength; // total bytes including n locators + optional fields
 
-  // u_int8_t n; // number of locator
-  u_int16_t rbytes; // remaining bytes
+  // Move the pointer to msf type field in the message
+  u_char 	*msf_type;
+  u_char 	*n_loc;		// number of locator
+  u_int16_t *elength; 	// total bytes including n locators + optional fields
+  u_int16_t rbytes; 	// remaining bytes i.e. length of optional fields
+
   struct in_addr *loc_id;
   u_char buff[INET_ADDRSTRLEN];
 
   msf_type = (u_char *)((caddr_t) last_link  );
-  zlog_debug (" [][][][][][] receive MSF type %u ",*msf_type);
+  // zlog_debug (" [][][][][][] Receive MSF type %u ",*msf_type);
 
   n_loc = (u_char *)((caddr_t) msf_type + 1); // 1 is the size of msf_type
-  zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
-  // n = (u_int8_t)(*n_loc);
+  // zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
 
   elength = (u_int16_t *)((caddr_t) n_loc + 1);
-  zlog_debug (" [][][][][][] with extra length = %d ",ntohs(*elength) );
 
-  // first locator
+  // getting the first locator
   loc_id =  (u_int16_t *)((caddr_t) elength + 2);
 
   inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
-  zlog_debug (" [][][][][][] msf locator-id %s",buff );
+  // zlog_debug (" [][][][][][] msf locator-id %s",buff );
 
   int i;
-  for (i=1;i<(u_int8_t)(*n_loc);i++) // skip the first locator
+  for (i=1;i<(u_int8_t)(*n_loc);i++) // i=1 since we already check the first locator
   {
 	  loc_id =  (u_int16_t *)((caddr_t) loc_id + 4);
 	  inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
-	  zlog_debug (" [][][][][][] msf locator-id %s",buff );
+	  // zlog_debug (" [][][][][][] msf locator-id %s",buff );
   }
 
+  // calculating the length of optional fields
   rbytes = ntohs(*elength) - ((u_int8_t)(*n_loc))*4;
-  zlog_debug (" [][][][][][] %d remaining bytes",rbytes );
+  // zlog_debug (" [][][][][][] %d remaining bytes",rbytes );
+
+  if (rbytes)
+  {
+	  u_int16_t *msf_att_type;
+	  u_int16_t *msf_att_value;
+
+	  while (rbytes) // optional fields are included -> start parsing them
+	  {
+		  msf_att_type 	=  (u_int16_t *)((caddr_t) loc_id + 4);
+		  msf_att_value	=  (u_int16_t *)((caddr_t) msf_att_type + 2);
+
+		  // TODO : think about XML format once writing to output file
+		  switch ( ntohs(*msf_att_type) )
+		  {
+		  case: ROUTER_LSA_MSFD_UN_TIMER
+		  	  zlog_debug (" [][][][][][]  U_timer = %d",ntohs(*msf_att_value) );
+			  break;
+		  case: ROUTER_LSA_MSFD_RE_TIMER
+		  	  zlog_debug (" [][][][][][]  R_timer = %d",ntohs(*msf_att_value) );
+			  break;
+		  case: ROUTER_LSA_MSFD_DIAGNOSIS
+		  	  zlog_debug (" [][][][][][]  Diagonosis = %d",ntohs(*msf_att_value) );
+			  break;
+		  case: ROUTER_LSA_MSFD_DB_STATUS
+		  	  zlog_debug (" [][][][][][]  DB Status = %d",ntohs(*msf_att_value) );
+			  break;
+		  case: ROUTER_LSA_MSFD_MFS_STATUS
+		  	  zlog_debug (" [][][][][][]  MFS Status = %d",ntohs(*msf_att_value) );
+			  break;
+		  default:
+			  zlog_debug (" [][][][][][] Unknown MSF attribute ");
+			  return MSG_NG;
+			  // unknown msf attribute, return error
+		  }
+
+		  rbytes -= 4; // each type-value field has the predefined length of 4
+	  }
+
+  }
+
 
   return MSG_OK;
 }
