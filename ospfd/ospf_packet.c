@@ -2433,7 +2433,8 @@ ospf_router_lsa_links_msf_examin
 (
   struct router_lsa_link * link,
   u_int16_t linkbytes,
-  const u_int16_t num_links
+  const u_int16_t num_links,
+  struct in_addr *adv_router
 )
 {
   unsigned counted_links = 0, thislinklen;
@@ -2482,16 +2483,22 @@ ospf_router_lsa_links_msf_examin
   struct in_addr *loc_id;
   u_char buff[INET_ADDRSTRLEN];
 
+  inet_ntop(AF_INET,adv_router,buff,INET_ADDRSTRLEN);
+
   /* @nguyenh: the received information ab mapping service function will not be used by ospfd,
    * so instead of recording them within the LSDB we put them in a text file for latter use
    * by openlisp
    */
   FILE *fp;
-  fp = fopen(LISP_MSF_FILE,"a"); // append to the end of file
+  fp = fopen(LISP_MSF_FILE,"a");
+  // append to the end of file; considering "a" or "w+" (rewrite the file)
+  // with "a" we need to clear the file once ospfd restart
+
+  // TODO: adding the IP address of sender and time that msf is update to file
 
   msf_type = (u_char *)((caddr_t) last_link  );
   // zlog_debug (" [][][][][][] Receive MSF type %u ",*msf_type);
-  fprintf(fp,"<MSF type=%u ",*msf_type);
+  fprintf(fp,"<MSF advertising-router=%s type=%u ",buff,*msf_type);
 
   n_loc = (u_char *)((caddr_t) msf_type + 1); // 1 is the size of msf_type
   // zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
@@ -2505,7 +2512,7 @@ ospf_router_lsa_links_msf_examin
   inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
   // zlog_debug (" [][][][][][] msf locator-id %s",buff );
 
-  fprintf(fp,"<locator>%s</locator>\n",buff);
+  fprintf(fp,"	<locator>%s</locator>\n",buff);
 
   int i;
   for (i=1;i<(u_int8_t)(*n_loc);i++) // i=1 since we already check the first locator
@@ -2513,7 +2520,7 @@ ospf_router_lsa_links_msf_examin
 	  loc_id =  (u_int16_t *)((caddr_t) loc_id + 4);
 	  inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
 	  // zlog_debug (" [][][][][][] msf locator-id %s",buff );
-	  fprintf(fp,"<locator>%s</locator>\n",buff);
+	  fprintf(fp,"	<locator>%s</locator>\n",buff);
   }
 
   // calculating the length of optional fields
@@ -2532,28 +2539,28 @@ ospf_router_lsa_links_msf_examin
 	  {
 
 		  msf_att_value	=  (u_int16_t *)((caddr_t) msf_att_type + 2);
-		  // TODO : think about XML format once writing to output file
+
 		  switch ( ntohs(*msf_att_type) )
 		  {
 		  case ROUTER_LSA_MSFD_UN_TIMER:
 		  	  // zlog_debug (" [][][][][][]  U_timer = %d",ntohs(*msf_att_value) );
-		  	  fprintf(fp,"<U_timer>%d</U_timer>\n",ntohs(*msf_att_value));
+		  	  fprintf(fp,"	<U_timer>%d</U_timer>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_RE_TIMER:
 		  	  //zlog_debug (" [][][][][][]  R_timer = %d",ntohs(*msf_att_value) );
-			  fprintf(fp,"<R_timer>%d</R_timer>\n",ntohs(*msf_att_value));
+			  fprintf(fp,"	<R_timer>%d</R_timer>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_DIAGNOSIS:
 		  	  //zlog_debug (" [][][][][][]  Diagonosis = %d",ntohs(*msf_att_value) );
-			  fprintf(fp,"<Diagonosis>%d</Diagonosis>\n",ntohs(*msf_att_value));
+			  fprintf(fp,"	<Diagonosis>%d</Diagonosis>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_DB_STATUS:
 		  	  //zlog_debug (" [][][][][][]  DB Status = %d",ntohs(*msf_att_value) );
-			  fprintf(fp,"<Database>%d</Database>\n",ntohs(*msf_att_value));
+			  fprintf(fp,"	<DB_status>%d</DB_status>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_MFS_STATUS:
 		  	  //zlog_debug (" [][][][][][]  MFS Status = %d",ntohs(*msf_att_value) );
-			  fprintf(fp,"<MFS_status>%d</MFS_status>\n",ntohs(*msf_att_value));
+			  fprintf(fp,"	<MFS_status>%d</MFS_status>\n",ntohs(*msf_att_value));
 			  break;
 		  default:
 			  zlog_debug (" [][][][][][] Unknown MSF attribute ");
@@ -2583,7 +2590,6 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
 {
   unsigned ret;
   struct router_lsa * rlsa;
-  /* @nguyenh */
 
   if
   (
@@ -2614,18 +2620,22 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
     rlsa = (struct router_lsa *) lsah;
 
     zlog_debug (" [][][][][] ospf_lsa_examin() header with links   ");
-    // nguyen h
-    if ( ntohs( rlsa->zero ) )
+    /* @nguyenh */
+    if ( ntohs( rlsa->zero ) ) // when received router-lsa including msf related fields
     {
-    	zlog_debug (" zero bit set to 1");
+    	// zlog_debug (" zero bit set to 1");
+
+    	// provide ospf_router_lsa_links_msf_examin() with lsah->adv_router
+    	// to record advertising router ID into the output file
     	ret = ospf_router_lsa_links_msf_examin
 		(
 		  (struct router_lsa_link *) rlsa->link,
 		  lsalen - OSPF_LSA_HEADER_SIZE - 4, /* skip: basic header, "flags", 0, "# links" */
-		  ntohs (rlsa->links) /* 16 bits */
+		  ntohs (rlsa->links), /* 16 bits */
+		  &(lsah->adv_router)
 		);
     }
-    else
+    else // original code
     {
 		ret = ospf_router_lsa_links_examin
 		(
