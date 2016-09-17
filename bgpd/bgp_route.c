@@ -1012,14 +1012,15 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 
   /* @nguyenh
    * adding an extended community attribute which
-   * including the ip address of lisp MS
-   * + currently we only announce to ebgp peers
+   * including the IP address of lisp MS
+   * NOTE: currently, we only announce to ebgp peers
    */
   if ( (bgp->lisp_enable) && (peer->sort == BGP_PEER_EBGP) )
    {
 	  // turn on the flag, indicate sending extended community attribute to peer
 	  SET_FLAG (peer->af_flags[afi][safi], PEER_FLAG_SEND_EXT_COMMUNITY);
-	  // turn on the flag, indicating the extended community attribute is included in the advertisement
+
+	  // turn on the flag, indicate that the extended community attribute is included in the advertisement
 	  SET_FLAG(attr->flag,ATTR_FLAG_BIT (BGP_ATTR_EXT_COMMUNITIES));
 	  // these two flags help to trigger bgp_packet_attribute to put the extended community attribute into stream
 
