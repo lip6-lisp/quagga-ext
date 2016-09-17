@@ -49,6 +49,8 @@
 #include "ospfd/ospf_flood.h"
 #include "ospfd/ospf_dump.h"
 
+#include "ospfd/ospf_vty.h"
+
 /* @nguyenh */
 /*
 const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
