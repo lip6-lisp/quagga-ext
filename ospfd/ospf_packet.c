@@ -1664,7 +1664,7 @@ ospf_ls_upd_list_lsa (struct ospf_neighbor *nbr, struct stream *s,
 		  memcpy (lsa->data, lsah, length);
 
 		  /* @nguyenh - testing router lsa receiving process */
-		  zlog_debug ("receiving 1 router-lsa - create and added to the lsa list lsas");
+		  zlog_debug (" ospf_ls_upd_list_lsa() receiving Router-lsa : create and add to the lsas list");
 
 		  if (IS_DEBUG_OSPF_EVENT)
 			  zlog_debug("LSA[Type%d:%s]: %p new LSA created with Link State Update",
@@ -1728,7 +1728,7 @@ ospf_ls_upd (struct ospf *ospf, struct ip *iph, struct ospf_header *ospfh,
     }
 
   /* @nguyenh */
-  zlog_debug(" [][][][] A link state update message received ");
+  zlog_debug(" [][][][] ospf_ls_upd() A link state update message received ");
 
   /* Get list of LSAs from Link State Update packet. - Also perorms Stages 
    * 1 (validate LSA checksum) and 2 (check for LSA consistent type) 
@@ -2518,19 +2518,19 @@ ospf_router_lsa_links_msf_examin
 		  // TODO : think about XML format once writing to output file
 		  switch ( ntohs(*msf_att_type) )
 		  {
-		  case: ROUTER_LSA_MSFD_UN_TIMER
+		  case ROUTER_LSA_MSFD_UN_TIMER:
 		  	  zlog_debug (" [][][][][][]  U_timer = %d",ntohs(*msf_att_value) );
 			  break;
-		  case: ROUTER_LSA_MSFD_RE_TIMER
+		  case ROUTER_LSA_MSFD_RE_TIMER:
 		  	  zlog_debug (" [][][][][][]  R_timer = %d",ntohs(*msf_att_value) );
 			  break;
-		  case: ROUTER_LSA_MSFD_DIAGNOSIS
+		  case ROUTER_LSA_MSFD_DIAGNOSIS:
 		  	  zlog_debug (" [][][][][][]  Diagonosis = %d",ntohs(*msf_att_value) );
 			  break;
-		  case: ROUTER_LSA_MSFD_DB_STATUS
+		  case ROUTER_LSA_MSFD_DB_STATUS:
 		  	  zlog_debug (" [][][][][][]  DB Status = %d",ntohs(*msf_att_value) );
 			  break;
-		  case: ROUTER_LSA_MSFD_MFS_STATUS
+		  case ROUTER_LSA_MSFD_MFS_STATUS:
 		  	  zlog_debug (" [][][][][][]  MFS Status = %d",ntohs(*msf_att_value) );
 			  break;
 		  default:
@@ -2666,9 +2666,6 @@ ospf_lsaseq_examin
   {
     u_int16_t lsalen;
 
-    // nguyenh
-    zlog_debug (" [][][][][] ospf_lsaseq_examin checking  ");
-
     if (length < OSPF_LSA_HEADER_SIZE)
     {
       if (IS_DEBUG_OSPF_PACKET (0, RECV))
@@ -2683,15 +2680,10 @@ ospf_lsaseq_examin
       if (IS_DEBUG_OSPF_PACKET (0, RECV))
         zlog_debug ("%s: malformed LSA header #%u, declared length is %u B",
                     __func__, counted_lsas, lsalen);
-      // nguyenh
-      zlog_debug ("%s: malformed LSA header #%u, declared length is %u B",
-                          __func__, counted_lsas, lsalen);
-
       return MSG_NG;
     }
     if (headeronly)
     {
-
       // nguyenh
       zlog_debug (" [][][][][] ospf_lsaseq_examin - header only message ");
 
@@ -2710,7 +2702,6 @@ ospf_lsaseq_examin
     }
     else
     {
-
       // nguyenh
       zlog_debug (" [][][][][] ospf_lsaseq_examin - normal message ");
 
@@ -2737,46 +2728,7 @@ ospf_lsaseq_examin
     }
 
     counted_lsas++;
-    /* @nguyenh */
-    /*
-    // here we can processing the extended msfd attributes when the counted_lsas = the declared number of lsas
-    // the bits after that will be parsed in a different way
-    // at that time lsah pointer the header of last lsa
-
-    if ( counted_lsas == declared_num_lsas )
-    {
-    	msfd_received = 1;
-    	last_lsalen = lsalen;
-    	 zlog_debug ("[][][][][][][][][] that works ");
-    	break;
-    }
-    // we need to move pointer to different position in the buffer and get the first type
-    // first break the current while loop since we are not processing lsa anymore
-    // if (declared_num_lsas && counted_lsas == declared_num_lsas)
-    // u_int8_t *ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + lsalen);
-    // u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
-    // the value will depended on type and len
-    // u_int8_t *ext_att_val 	= (u_int8_t *) ((caddr_t) ext_att_len + 1);
-     *
-     */
   }
-
-  /*
-  if ( msfd_received )
-  {
-	  u_int8_t *ext_att_type;
-
-	  if (headeronly)
-		  ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + OSPF_LSA_HEADER_SIZE);
-	  else
-		  ext_att_type 	= (u_int8_t *) ((caddr_t) lsah + last_lsalen);
-
-	  u_int8_t *ext_att_len 	= (u_int8_t *) ((caddr_t) ext_att_type + 1);
-
-	  if (*ext_att_type == ROUTER_LSA_MSFD_TYPE)
-		  zlog_debug ("[][][][][] that works ");
-  }
-  */
 
   if (declared_num_lsas && counted_lsas != declared_num_lsas)
   {
@@ -3140,28 +3092,23 @@ ospf_read (struct thread *thread)
     {
     case OSPF_MSG_HELLO:
       ospf_hello (iph, ospfh, ibuf, oi, length);
-      /* @nguyenh */
-       zlog_debug(" [][][]  OSPF_MSG_HELLO ");
+      //zlog_debug(" [][][]  OSPF_MSG_HELLO ");
       break;
     case OSPF_MSG_DB_DESC:
       ospf_db_desc (iph, ospfh, ibuf, oi, length);
-      /* @nguyenh */
-      zlog_debug(" [][][]  OSPF_MSG_DB_DESC ");
+      //zlog_debug(" [][][]  OSPF_MSG_DB_DESC ");
       break;
     case OSPF_MSG_LS_REQ:
       ospf_ls_req (iph, ospfh, ibuf, oi, length);
-      /* @nguyenh */
-      zlog_debug(" [][][]  OSPF_MSG_LS_REQ ");
+      //zlog_debug(" [][][]  OSPF_MSG_LS_REQ ");
       break;
     case OSPF_MSG_LS_UPD:
       ospf_ls_upd (ospf, iph, ospfh, ibuf, oi, length);
-      /* @nguyenh */
-      zlog_debug(" [][][]  OSPF_MSG_LS_UPD ");
+      //zlog_debug(" [][][]  OSPF_MSG_LS_UPD ");
       break;
     case OSPF_MSG_LS_ACK:
       ospf_ls_ack (iph, ospfh, ibuf, oi, length);
-      /* @nguyenh */
-      zlog_debug(" [][][]  OSPF_MSG_LS_ACK ");
+      //zlog_debug(" [][][]  OSPF_MSG_LS_ACK ");
       break;
     default:
       zlog (NULL, LOG_WARNING,
@@ -3838,7 +3785,7 @@ ospf_ls_upd_send_lsa (struct ospf_neighbor *nbr, struct ospf_lsa *lsa,
   update = list_new ();
 
   /* @nguyenh */
-  zlog_debug("ospf_ls_upd_send_lsa () ---> ");
+  zlog_debug(" ospf_ls_upd_send_lsa() ---> sending ls update message ...");
 
   listnode_add (update, lsa);
   ospf_ls_upd_send (nbr, update, flag);

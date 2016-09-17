@@ -764,6 +764,7 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 
   int length = stream_get_endp (s);
   zlog_debug ("ospf_router_lsa_body_set: before adding length = %d",length);
+
   /* @nguyenh: adding the mapping service function related attribute after setting all link information  */
   // adding type-length-value attribute fields to the stream
   // then we need also to check for the length of the extended message --> the length is automatically update,
@@ -991,19 +992,16 @@ ospf_router_lsa_originate (struct ospf_area *area)
   /* Sanity check. */
   if (new->data->adv_router.s_addr == 0)
     {
-	  /* @nguyenh */
-	  zlog_debug ("LSA[Type1]: AdvRouter is 0, discard");
-
       if (IS_DEBUG_OSPF_EVENT)
-	zlog_debug ("LSA[Type1]: AdvRouter is 0, discard");
+    	  zlog_debug ("LSA[Type1]: AdvRouter is 0, discard");
+
       ospf_lsa_discard (new);
       return NULL;
     }
 
   /* Install LSA to LSDB. */
   new = ospf_lsa_install (area->ospf, NULL, new);
-  /* @nguyenh */
-  zlog_debug ("[][] ospf_router_lsa_originate: install LSA to LSDB ");
+  // zlog_debug ("[][] ospf_router_lsa_originate: install LSA to LSDB ");
 
 
   /* Update LSA origination count. */
@@ -1011,10 +1009,9 @@ ospf_router_lsa_originate (struct ospf_area *area)
 
   /* Flooding new LSA through area. */
 
-  /* @nguyenh */
-  zlog_debug ("[][] ospf_router_lsa_originate: prepare to flood through area ");
-  zlog_debug ("LSA[Type%d:%s]: Originate router-LSA %p",
-	 new->data->type, inet_ntoa (new->data->id), (void *)new);
+  // zlog_debug ("[][] ospf_router_lsa_originate: prepare to flood through area ");
+  // zlog_debug ("LSA[Type%d:%s]: Originate router-LSA %p", new->data->type, inet_ntoa (new->data->id), (void *)new);
+
   ospf_lsa_header_dump (new->data);
 
   ospf_flood_through_area (area, NULL, new);
