@@ -49,24 +49,6 @@
 #include "ospfd/ospf_flood.h"
 #include "ospfd/ospf_dump.h"
 
-#include "ospfd/ospf_vty.h"
-
-/* @nguyenh */
-/*
-const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
-// declare @ ospfd.h
-
-static void
-lisp_msf_file_init(const char filename[])
-{
-	FILE *fp;
-	fp = fopen(filename, "w");
-	// so each time ospfd is init, we need to empty the msfd file
-	fclose(fp);
-}
-// declare and call at ospf_vty.c (call when ospf_vty_init)
-*/
-
 /* Packet Type String. */
 const struct message ospf_packet_type_str[] =
 {

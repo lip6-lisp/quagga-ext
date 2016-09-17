@@ -743,7 +743,8 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   stream_putc (s, router_lsa_flags (area));
 
   /* @nguyenh */
-  // Keep pointer to Zero field
+  // keep pointer to 'Zero field'
+  // employ 'Zero field' as the flag to indicate the presence of MSFD field in router-LSA
   unsigned char zfp;
   zfp = stream_get_endp(s);
 
@@ -765,15 +766,28 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
   int length = stream_get_endp (s);
   zlog_debug ("ospf_router_lsa_body_set: before adding length = %d",length);
 
-  /* @nguyenh: adding the mapping service function related attribute after setting all link information  */
-  // adding type-length-value attribute fields to the stream
-  // then we need also to check for the length of the extended message --> the length is automatically update,
-  // 	depending on the latest position of s, so we dont need to do manual update here
+  /* @nguyenh: add the MSF related attribute after setting all link information */
+  /*
+   * |				  .......                 |
+   * |             Last LSA link              |
+   * 0----------8--------16--------24--------32
+   * | MSF Type | #of Loc |      Length  	  |
+   * |----------------------------------------|
+   * | 		        Locator ID 1              |
+   * |----------------------------------------|
+   * | 		        Locator ID ...      	  |
+   * |----------------------------------------|
+   * | 		        Locator ID n              |
+   * |----------------------------------------|
+   * | 		   ATT_TYPE   |		 VALUE        |
+   * |----------------------------------------|
+   * | 		   ATT_TYPE   |		 VALUE        |
+   * |----------------------------------------|
+   * | 		   			.....				  |
+   * |----------------------------------------|
+   *
+   * */
 
-  // how we can get the value of MSF ?
-  // struct ospf *ospf = area->ospf; then we can get it from the ospf struct ?
-  // we can refer to them by ospf->mapping_service_func
-  // then putting them in to stream s
   struct ospf *ospf = area->ospf;
   if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
   {
@@ -787,15 +801,11 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 		  zlog_debug (" msf locator-id %s",buff);
 	  }
 
-	  // the Zero field is now set to 1 when the msf bit is piggyback in router LSA
+	  // when the MSF attribute is piggybacked in router LSA, the Zero field is set to 1
 	  stream_putc_at (s, zfp, 1);
   }
   else
 	  zlog_debug ("ospf_router_lsa_body_set: lisp msf support is not enabled ");
-
-  // Type-length-value
-  // need to define different msfd attribute type in ospf_lsa.h
-  // ROUTER_LSA_MSFD_TYPE  ROUTER_LSA_MSFD_TYPE_LOCATOR
 
   if ( ospf->lisp_enable == OSPF_LISP_MSF_ENABLE )
   {
@@ -804,26 +814,25 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 	  // 8 bits MSF type followed by 8-bit number of locator then 16-bit total length of addtional fields
 	   stream_putc(s,(u_char) ospf->mapping_service_func->msf_type);
 	   stream_putc(s,(u_char) ospf->mapping_service_func->nloc);
-	   zlog_debug ("ospf_router_lsa_body_set: msf type = %u nloc = %u ",
-			   (u_char) ospf->mapping_service_func->msf_type,(u_char) ospf->mapping_service_func->nloc );
-	  //stream_putc(s,1);
-	  //stream_putc(s,2);
 
-	  // total lenght in octet = nloc*4 + other 5 optional fields (with max = 5 * 4 =20 octects  )
-	  // stream_putw(s, (ospf->mapping_service_func->nloc * 4) + ); update it latter
-	  // so we keep a pointer to that Length Field elength_p
+	   // zlog_debug ("ospf_router_lsa_body_set: msf type = %u nloc = %u ",
+	   //	 	   (u_char) ospf->mapping_service_func->msf_type,(u_char) ospf->mapping_service_func->nloc );
+
+	  // Total lenght in octet = nloc*4 + other 5 optional fields (with max = 5 * 4 =20 octects  )
+
+	  // keep a pointer to the Length Field elength_p for latter update
 	  unsigned long elength_p;
 	  elength_p = stream_get_endp(s);
 	  // Forward word
 	  stream_putw(s, 0);
 
-	  // locator id
+	  // Locator id
 	  for (i=0;i<ospf->mapping_service_func->nloc;i++)
 	  {
 		  stream_put_in_addr(s,&ospf->mapping_service_func->locator_id[i]);
 	  }
 
-	  // timers
+	  // Timers
 	  if (ospf->mapping_service_func->msf_unavailable_timer)
 	  {
 		  stream_putw(s,ROUTER_LSA_MSFD_UN_TIMER);
@@ -837,7 +846,7 @@ ospf_router_lsa_body_set (struct stream *s, struct ospf_area *area)
 		  n_opt_field++;
 	  }
 
-	  // status bits
+	  // Status
 	  if (ospf->mapping_service_func->msf_diagnosis_status)
 	  {
 		  stream_putw(s,ROUTER_LSA_MSFD_DIAGNOSIS);
