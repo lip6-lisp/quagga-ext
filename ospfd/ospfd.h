@@ -284,6 +284,9 @@ struct ospf
   struct lisp_msf *mapping_service_func;
 };
 
+/* @nguyenh : lisp_msf file that records received msfd information */
+const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
+
 /* @nguyenh : new lisp_msf structure */
 struct lisp_msf
 {

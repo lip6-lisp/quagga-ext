@@ -62,6 +62,16 @@ static const char *ospf_network_type_str[] =
 };
 
 
+/* @nguyenh */
+static void
+lisp_msf_file_init(const char filename[])
+{
+	FILE *fp;
+	fp = fopen(filename, "w");
+	// so each time ospfd is init, we need to empty the msfd file
+	fclose(fp);
+}
+
 /* Utility functions. */
 static int
 ospf_str2area_id (const char *str, struct in_addr *area_id, int *format)
@@ -8225,4 +8235,7 @@ ospf_vty_init (void)
 
   /* Init zebra related vty commands. */
   ospf_vty_zebra_init ();
+
+  /* @nguyenh: clear the content of lisp msf file */
+  lisp_msf_file_init(LISP_MSF_FILE);
 }

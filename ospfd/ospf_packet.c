@@ -50,7 +50,20 @@
 #include "ospfd/ospf_dump.h"
 
 /* @nguyenh */
+/*
 const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
+// declare @ ospfd.h
+
+static void
+lisp_msf_file_init(const char filename[])
+{
+	FILE *fp;
+	fp = fopen(filename, "w");
+	// so each time ospfd is init, we need to empty the msfd file
+	fclose(fp);
+}
+// declare and call at ospf_vty.c (call when ospf_vty_init)
+*/
 
 /* Packet Type String. */
 const struct message ospf_packet_type_str[] =
@@ -2498,11 +2511,11 @@ ospf_router_lsa_links_msf_examin
 
   msf_type = (u_char *)((caddr_t) last_link  );
   // zlog_debug (" [][][][][][] Receive MSF type %u ",*msf_type);
-  fprintf(fp,"<MSF advertising-router=%s type=%u ",buff,*msf_type);
+  fprintf(fp,"<MSF type=%u ",*msf_type);
 
   n_loc = (u_char *)((caddr_t) msf_type + 1); // 1 is the size of msf_type
   // zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
-  fprintf(fp,"nloc=%u >\n",*n_loc);
+  fprintf(fp,"nloc=%u adv-router=%s >\n",*n_loc,buff);
 
   elength = (u_int16_t *)((caddr_t) n_loc + 1);
 
@@ -2611,19 +2624,21 @@ ospf_lsa_examin (struct lsa_header * lsah, const u_int16_t lsalen, const u_char 
     {
       ret = (lsalen - OSPF_LSA_HEADER_SIZE - OSPF_ROUTER_LSA_MIN_SIZE) % 4 ? MSG_NG : MSG_OK;
       // nguyenh
+      /*
       zlog_debug (" [][][][][] ospf_lsa_examin() headeronly ");
       if (ret==MSG_OK)
     	  zlog_debug (" [][][][][] ospf_lsa_examin() MSG_OK ");
-
+	  */
       break;
     }
     rlsa = (struct router_lsa *) lsah;
 
-    zlog_debug (" [][][][][] ospf_lsa_examin() header with links   ");
+    // zlog_debug (" [][][][][] ospf_lsa_examin() header with links   ");
     /* @nguyenh */
     if ( ntohs( rlsa->zero ) ) // when received router-lsa including msf related fields
     {
     	// zlog_debug (" zero bit set to 1");
+    	zlog_debug (" [][][][][] ospf_lsa_examin(): LSA including MSFD information ");
 
     	// provide ospf_router_lsa_links_msf_examin() with lsah->adv_router
     	// to record advertising router ID into the output file
@@ -2721,8 +2736,7 @@ ospf_lsaseq_examin
     }
     if (headeronly)
     {
-      // nguyenh
-      zlog_debug (" [][][][][] ospf_lsaseq_examin - header only message ");
+      // zlog_debug (" [][][][][] ospf_lsaseq_examin - header only message ");
 
       /* less checks here and in ospf_lsa_examin() */
       if (MSG_OK != ospf_lsa_examin (lsah, lsalen, 1))
@@ -2734,13 +2748,13 @@ ospf_lsaseq_examin
       lsah = (struct lsa_header *) ((caddr_t) lsah + OSPF_LSA_HEADER_SIZE);
       length -= OSPF_LSA_HEADER_SIZE;
 
-      // nguyenh
-      zlog_debug (" [][][][][] ospf_lsaseq_examin - no error - next lsa ");
+
+      // zlog_debug (" [][][][][] ospf_lsaseq_examin - no error - next lsa ");
     }
     else
     {
-      // nguyenh
-      zlog_debug (" [][][][][] ospf_lsaseq_examin - normal message ");
+
+      // zlog_debug (" [][][][][] ospf_lsaseq_examin - normal message ");
 
       /* make sure the input buffer is deep enough before further checks */
       if (lsalen > length)
@@ -2760,8 +2774,7 @@ ospf_lsaseq_examin
       lsah = (struct lsa_header *) ((caddr_t) lsah + lsalen);
       length -= lsalen;
 
-      // nguyenh
-      zlog_debug (" [][][][][] ospf_lsaseq_examin - no error - next lsa ");
+      // zlog_debug (" [][][][][] ospf_lsaseq_examin - no error - next lsa ");
     }
 
     counted_lsas++;
