@@ -2510,11 +2510,13 @@ ospf_router_lsa_links_msf_examin
 	  u_int16_t *msf_att_type;
 	  u_int16_t *msf_att_value;
 
+	  // move pointer to the first attribute type field, after the last locator id
+	  msf_att_type 	=  (u_int16_t *)((caddr_t) loc_id + 4);
+
 	  while (rbytes) // optional fields are included -> start parsing them
 	  {
-		  msf_att_type 	=  (u_int16_t *)((caddr_t) loc_id + 4);
-		  msf_att_value	=  (u_int16_t *)((caddr_t) msf_att_type + 2);
 
+		  msf_att_value	=  (u_int16_t *)((caddr_t) msf_att_type + 2);
 		  // TODO : think about XML format once writing to output file
 		  switch ( ntohs(*msf_att_type) )
 		  {
@@ -2538,8 +2540,10 @@ ospf_router_lsa_links_msf_examin
 			  return MSG_NG;
 			  // unknown msf attribute, return error
 		  }
-
 		  rbytes -= 4; // each type-value field has the predefined length of 4
+
+		  if (rbytes) // move pointer to the next attribute type
+			  msf_att_type 	=  (u_int16_t *)((caddr_t) msf_att_value + 2);
 	  }
 
   }
