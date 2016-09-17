@@ -49,6 +49,9 @@
 #include "ospfd/ospf_flood.h"
 #include "ospfd/ospf_dump.h"
 
+/* @nguyenh */
+const char LISP_MSF_FILE="/usr/local/etc/lisp_msf.txt";
+
 /* Packet Type String. */
 const struct message ospf_packet_type_str[] =
 {
@@ -2479,11 +2482,20 @@ ospf_router_lsa_links_msf_examin
   struct in_addr *loc_id;
   u_char buff[INET_ADDRSTRLEN];
 
+  /* @nguyenh: the received information ab mapping service function will not be used by ospfd,
+   * so instead of recording them within the LSDB we put them in a text file for latter use
+   * by openlisp
+   */
+  FILE *fp;
+  fp = fopen(LISP_MSF_FILE,"a"); // append to the end of file
+
   msf_type = (u_char *)((caddr_t) last_link  );
   // zlog_debug (" [][][][][][] Receive MSF type %u ",*msf_type);
+  fprintf(fp,"<MSF type=%u ",*msf_type);
 
   n_loc = (u_char *)((caddr_t) msf_type + 1); // 1 is the size of msf_type
   // zlog_debug (" [][][][][][] with n locator = %u ",*n_loc);
+  fprintf(fp,"nloc=%u >\n",*n_loc);
 
   elength = (u_int16_t *)((caddr_t) n_loc + 1);
 
@@ -2493,12 +2505,15 @@ ospf_router_lsa_links_msf_examin
   inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
   // zlog_debug (" [][][][][][] msf locator-id %s",buff );
 
+  fprintf(fp,"<locator>%s</locator>\n",buff);
+
   int i;
   for (i=1;i<(u_int8_t)(*n_loc);i++) // i=1 since we already check the first locator
   {
 	  loc_id =  (u_int16_t *)((caddr_t) loc_id + 4);
 	  inet_ntop(AF_INET,loc_id,buff,INET_ADDRSTRLEN);
 	  // zlog_debug (" [][][][][][] msf locator-id %s",buff );
+	  fprintf(fp,"<locator>%s</locator>\n",buff);
   }
 
   // calculating the length of optional fields
@@ -2521,22 +2536,29 @@ ospf_router_lsa_links_msf_examin
 		  switch ( ntohs(*msf_att_type) )
 		  {
 		  case ROUTER_LSA_MSFD_UN_TIMER:
-		  	  zlog_debug (" [][][][][][]  U_timer = %d",ntohs(*msf_att_value) );
+		  	  // zlog_debug (" [][][][][][]  U_timer = %d",ntohs(*msf_att_value) );
+		  	  fprintf(fp,"<U_timer>%d</U_timer>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_RE_TIMER:
-		  	  zlog_debug (" [][][][][][]  R_timer = %d",ntohs(*msf_att_value) );
+		  	  //zlog_debug (" [][][][][][]  R_timer = %d",ntohs(*msf_att_value) );
+			  fprintf(fp,"<R_timer>%d</R_timer>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_DIAGNOSIS:
-		  	  zlog_debug (" [][][][][][]  Diagonosis = %d",ntohs(*msf_att_value) );
+		  	  //zlog_debug (" [][][][][][]  Diagonosis = %d",ntohs(*msf_att_value) );
+			  fprintf(fp,"<Diagonosis>%d</Diagonosis>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_DB_STATUS:
-		  	  zlog_debug (" [][][][][][]  DB Status = %d",ntohs(*msf_att_value) );
+		  	  //zlog_debug (" [][][][][][]  DB Status = %d",ntohs(*msf_att_value) );
+			  fprintf(fp,"<Database>%d</Database>\n",ntohs(*msf_att_value));
 			  break;
 		  case ROUTER_LSA_MSFD_MFS_STATUS:
-		  	  zlog_debug (" [][][][][][]  MFS Status = %d",ntohs(*msf_att_value) );
+		  	  //zlog_debug (" [][][][][][]  MFS Status = %d",ntohs(*msf_att_value) );
+			  fprintf(fp,"<MFS_status>%d</MFS_status>\n",ntohs(*msf_att_value));
 			  break;
 		  default:
 			  zlog_debug (" [][][][][][] Unknown MSF attribute ");
+			  fprintf(fp,"</MSF> \n");
+			  fclose(fp);
 			  return MSG_NG;
 			  // unknown msf attribute, return error
 		  }
@@ -2545,9 +2567,10 @@ ospf_router_lsa_links_msf_examin
 		  if (rbytes) // move pointer to the next attribute type
 			  msf_att_type 	=  (u_int16_t *)((caddr_t) msf_att_value + 2);
 	  }
-
   }
 
+  fprintf(fp,"</MSF> \n");
+  fclose(fp);
 
   return MSG_OK;
 }
