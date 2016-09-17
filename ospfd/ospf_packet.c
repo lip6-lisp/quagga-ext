@@ -50,7 +50,7 @@
 #include "ospfd/ospf_dump.h"
 
 /* @nguyenh */
-const char LISP_MSF_FILE="/usr/local/etc/lisp_msf.txt";
+const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
 
 /* Packet Type String. */
 const struct message ospf_packet_type_str[] =
