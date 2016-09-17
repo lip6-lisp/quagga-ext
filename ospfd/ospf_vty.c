@@ -49,6 +49,9 @@
 #include "ospfd/ospf_vty.h"
 #include "ospfd/ospf_dump.h"
 
+/* @nguyenh : lisp_msf file that records received msfd information */
+// extern const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
+
 static const char *ospf_network_type_str[] =
 {
   "Null",

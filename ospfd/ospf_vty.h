@@ -23,8 +23,8 @@
 #define _QUAGGA_OSPF_VTY_H
 
 /* @nguyenh : lisp_msf file that records received msfd information */
-extern const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
-
+// extern const char LISP_MSF_FILE[]="/usr/local/etc/lisp_msf.txt";
+#define LISP_MSF_FILE "/usr/local/etc/lisp_msf.txt"
 /* Macros. */
 #define VTY_GET_OSPF_AREA_ID(V,F,STR)                                         \
 {                                                                             \
