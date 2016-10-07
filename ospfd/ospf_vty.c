@@ -7775,7 +7775,6 @@ ospf_config_write (struct vty *vty)
 		  }
 
       }
-
       /* nguyenh */
 
       /* Max-metric router-lsa print */

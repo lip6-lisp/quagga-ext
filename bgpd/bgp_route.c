@@ -1034,22 +1034,16 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 	  eval.val[3] = 0;
 	  memcpy(& (eval.val[4]),&bgp->lisp_ms_ip,sizeof(struct in_addr));
 
-	  zlog_debug ("eval created");
-
 	  // link current extended attribute to the new created value
-	  // attr->extra = bgp_attr_extra_get(attr);
 	  attr->extra = bgp_attr_extra_get(attr);
 
 	  attr->extra->ecommunity = XCALLOC (MTYPE_ECOMMUNITY, sizeof (struct ecommunity));
-	  // attr->extra->ecommunity = XMALLOC(MTYPE_ECOMMUNITY, sizeof (struct ecommunity));
-	  struct ecommunity *ecom = attr->extra->ecommunity;
 
-	  if ( ecom == NULL )
-		  zlog_debug (" ecom NULL ");
+	  // using the ecom pointer to access the new created ecommunity attribute in attr->extra
+	  struct ecommunity *ecom = attr->extra->ecommunity;
 
 	  if (ecom->val == NULL )
 	  {
-		  zlog_debug (" ecom access ");
 		  ecom->size++;
 		  ecom->val = XMALLOC(MTYPE_ECOMMUNITY_VAL,ecom_length(ecom));
 		  memcpy(ecom->val, &(eval.val), ECOMMUNITY_SIZE);
@@ -1067,7 +1061,8 @@ bgp_announce_check (struct bgp_info *ri, struct peer *peer, struct prefix *p,
 		  memcpy(ecom->val, &eval.val, ECOMMUNITY_SIZE);
 	  }
 	  */
-	  zlog_debug (" testing ");
+
+	  // zlog_debug (" testing ");
 
    }
    /* nguyenh */
